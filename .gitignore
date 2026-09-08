@@ -1,0 +1,34 @@
+﻿# System
+.DS_Store
+Thumbs.db
+
+# Node / frontend
+node_modules/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Java / Gradle
+.gradle/
+build/
+out/
+*.class
+*.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Env / secrets
+.env
+.env.local
+*.pem
+*.key
+
+# Misc
+*.log
+*.bak
+*.swp
+*.tmp
