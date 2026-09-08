@@ -2,7 +2,7 @@
 
 Simulateur de loot box / gacha : ouverture de boîtes avec taux de drop par rareté, inventaire par joueur, historique des tirages.
 
-Projet réalisé dans le cadre du cours OO Systems Development (EFREI) — travail en binôme.
+Projet réalisé dans le cadre du cours OO Systems Development (EFREI).
 
 ## Stack
 
