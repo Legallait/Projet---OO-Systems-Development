@@ -35,4 +35,7 @@ public class PullHistory {
     private Item item;
 
     private LocalDateTime pulledAt;
+
+    @Builder.Default
+    private Boolean sold = false;
 }

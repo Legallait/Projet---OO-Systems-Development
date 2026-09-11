@@ -6,6 +6,6 @@ public record PullResultResponse(
         String itemImageUrl,
         String rarityName,
         String rarityColorHex,
+        Integer sellPrice,
         Integer remainingCredits
-) {
-}
+) {}

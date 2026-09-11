@@ -5,6 +5,6 @@ public record InventoryItemResponse(
         String itemName,
         String rarityName,
         String rarityColorHex,
+        Integer sellPrice,
         Integer quantity
-) {
-}
+) {}

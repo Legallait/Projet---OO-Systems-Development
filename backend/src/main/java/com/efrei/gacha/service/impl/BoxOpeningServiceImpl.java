@@ -24,12 +24,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class BoxOpeningServiceImpl implements BoxOpeningService {
 
     private static final Logger log = LoggerFactory.getLogger(BoxOpeningServiceImpl.class);
+    private static final int PULLS_PER_OPENING = 5;
 
     private final PlayerRepository playerRepository;
     private final BoxRepository boxRepository;
@@ -39,10 +41,10 @@ public class BoxOpeningServiceImpl implements BoxOpeningService {
 
     @Autowired
     public BoxOpeningServiceImpl(PlayerRepository playerRepository,
-                                  BoxRepository boxRepository,
-                                  BoxItemRepository boxItemRepository,
-                                  InventoryItemRepository inventoryItemRepository,
-                                  PullHistoryRepository pullHistoryRepository) {
+                                 BoxRepository boxRepository,
+                                 BoxItemRepository boxItemRepository,
+                                 InventoryItemRepository inventoryItemRepository,
+                                 PullHistoryRepository pullHistoryRepository) {
         this.playerRepository = playerRepository;
         this.boxRepository = boxRepository;
         this.boxItemRepository = boxItemRepository;
@@ -52,7 +54,7 @@ public class BoxOpeningServiceImpl implements BoxOpeningService {
 
     @Override
     @Transactional
-    public PullResultResponse openBox(Long playerId, Long boxId) {
+    public List<PullResultResponse> openBox(Long playerId, Long boxId) {
         Player player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new PlayerNotFoundException(playerId));
         Box box = boxRepository.findById(boxId)
@@ -67,38 +69,44 @@ public class BoxOpeningServiceImpl implements BoxOpeningService {
             throw new EmptyBoxException(boxId);
         }
 
-        Item drawnItem = drawItem(boxItems);
-
         player.setCredits(player.getCredits() - box.getPrice());
         playerRepository.save(player);
 
-        InventoryItem inventoryItem = inventoryItemRepository
-                .findByPlayerIdAndItemId(playerId, drawnItem.getId())
-                .orElseGet(() -> InventoryItem.builder()
-                        .player(player)
-                        .item(drawnItem)
-                        .quantity(0)
-                        .build());
-        inventoryItem.setQuantity(inventoryItem.getQuantity() + 1);
-        inventoryItemRepository.save(inventoryItem);
+        List<PullResultResponse> results = new ArrayList<>();
+        for (int i = 0; i < PULLS_PER_OPENING; i++) {
+            Item drawnItem = drawItem(boxItems);
 
-        pullHistoryRepository.save(PullHistory.builder()
-                .player(player)
-                .box(box)
-                .item(drawnItem)
-                .pulledAt(LocalDateTime.now())
-                .build());
+            InventoryItem inventoryItem = inventoryItemRepository
+                    .findByPlayerIdAndItemId(playerId, drawnItem.getId())
+                    .orElseGet(() -> InventoryItem.builder()
+                            .player(player)
+                            .item(drawnItem)
+                            .quantity(0)
+                            .build());
+            inventoryItem.setQuantity(inventoryItem.getQuantity() + 1);
+            inventoryItemRepository.save(inventoryItem);
 
-        log.info("Player {} opened box {} and got item {}", playerId, boxId, drawnItem.getId());
+            pullHistoryRepository.save(PullHistory.builder()
+                    .player(player)
+                    .box(box)
+                    .item(drawnItem)
+                    .pulledAt(LocalDateTime.now())
+                    .build());
 
-        return new PullResultResponse(
-                drawnItem.getId(),
-                drawnItem.getName(),
-                drawnItem.getImageUrl(),
-                drawnItem.getRarity().getName(),
-                drawnItem.getRarity().getColorHex(),
-                player.getCredits()
-        );
+            results.add(new PullResultResponse(
+                    drawnItem.getId(),
+                    drawnItem.getName(),
+                    drawnItem.getImageUrl(),
+                    drawnItem.getRarity().getName(),
+                    drawnItem.getRarity().getColorHex(),
+                    drawnItem.getSellPrice(),
+                    player.getCredits()
+            ));
+
+            log.info("Player {} opened box {} and got item {}", playerId, boxId, drawnItem.getId());
+        }
+
+        return results;
     }
 
     private Item drawItem(List<BoxItem> boxItems) {

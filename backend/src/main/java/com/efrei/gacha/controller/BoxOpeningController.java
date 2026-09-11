@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -44,7 +45,7 @@ public class BoxOpeningController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public PullResultResponse openBox(@PathVariable Long playerId, @PathVariable Long boxId) {
+    public List<PullResultResponse> openBox(@PathVariable Long playerId, @PathVariable Long boxId) {
         return boxOpeningService.openBox(playerId, boxId);
     }
 

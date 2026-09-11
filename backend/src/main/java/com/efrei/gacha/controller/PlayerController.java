@@ -3,6 +3,8 @@ package com.efrei.gacha.controller;
 import com.efrei.gacha.dto.CreatePlayerRequest;
 import com.efrei.gacha.dto.InventoryItemResponse;
 import com.efrei.gacha.dto.PullHistoryResponse;
+import com.efrei.gacha.dto.SellItemResponse;
+import com.efrei.gacha.exception.ItemNotInInventoryException;
 import com.efrei.gacha.exception.PlayerNotFoundException;
 import com.efrei.gacha.model.Player;
 import com.efrei.gacha.service.PlayerService;
@@ -33,6 +35,14 @@ public class PlayerController {
         return response;
     }
 
+    @ExceptionHandler(ItemNotInInventoryException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, String> handleItemNotInInventory(ItemNotInInventoryException e) {
+        Map<String, String> response = new HashMap<>();
+        response.put("message", e.getMessage());
+        return response;
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Player createPlayer(@RequestBody CreatePlayerRequest request) {
@@ -55,5 +65,11 @@ public class PlayerController {
     @ResponseStatus(HttpStatus.OK)
     public List<PullHistoryResponse> getHistory(@PathVariable Long playerId) {
         return playerService.getHistory(playerId);
+    }
+
+    @PostMapping("/{playerId}/inventory/{itemId}/sell")
+    @ResponseStatus(HttpStatus.OK)
+    public SellItemResponse sellItem(@PathVariable Long playerId, @PathVariable Long itemId) {
+        return playerService.sellItem(playerId, itemId);
     }
 }

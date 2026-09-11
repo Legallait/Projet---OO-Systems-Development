@@ -2,7 +2,11 @@ package com.efrei.gacha.service.impl;
 
 import com.efrei.gacha.dto.InventoryItemResponse;
 import com.efrei.gacha.dto.PullHistoryResponse;
+import com.efrei.gacha.dto.SellItemResponse;
+import com.efrei.gacha.exception.ItemNotInInventoryException;
 import com.efrei.gacha.exception.PlayerNotFoundException;
+import com.efrei.gacha.model.InventoryItem;
+import com.efrei.gacha.model.Item;
 import com.efrei.gacha.model.Player;
 import com.efrei.gacha.repository.InventoryItemRepository;
 import com.efrei.gacha.repository.PlayerRepository;
@@ -10,6 +14,7 @@ import com.efrei.gacha.repository.PullHistoryRepository;
 import com.efrei.gacha.service.PlayerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,8 +30,8 @@ public class PlayerServiceImpl implements PlayerService {
 
     @Autowired
     public PlayerServiceImpl(PlayerRepository playerRepository,
-                              InventoryItemRepository inventoryItemRepository,
-                              PullHistoryRepository pullHistoryRepository) {
+                             InventoryItemRepository inventoryItemRepository,
+                             PullHistoryRepository pullHistoryRepository) {
         this.playerRepository = playerRepository;
         this.inventoryItemRepository = inventoryItemRepository;
         this.pullHistoryRepository = pullHistoryRepository;
@@ -59,6 +64,7 @@ public class PlayerServiceImpl implements PlayerService {
                         inv.getItem().getName(),
                         inv.getItem().getRarity().getName(),
                         inv.getItem().getRarity().getColorHex(),
+                        inv.getItem().getSellPrice(),
                         inv.getQuantity()
                 ))
                 .toList();
@@ -71,11 +77,47 @@ public class PlayerServiceImpl implements PlayerService {
         }
         return pullHistoryRepository.findByPlayerIdOrderByPulledAtDesc(playerId).stream()
                 .map(pull -> new PullHistoryResponse(
+                        pull.getItem().getId(),
                         pull.getBox().getName(),
                         pull.getItem().getName(),
                         pull.getItem().getRarity().getName(),
+                        pull.getItem().getSellPrice(),
+                        pull.getSold(),
                         pull.getPulledAt()
                 ))
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public SellItemResponse sellItem(Long playerId, Long itemId) {
+        Player player = playerRepository.findById(playerId)
+                .orElseThrow(() -> new PlayerNotFoundException(playerId));
+
+        InventoryItem inventoryItem = inventoryItemRepository.findByPlayerIdAndItemId(playerId, itemId)
+                .filter(inv -> inv.getQuantity() > 0)
+                .orElseThrow(() -> new ItemNotInInventoryException(playerId, itemId));
+
+        Item item = inventoryItem.getItem();
+        int sellPrice = item.getSellPrice();
+
+        player.setCredits(player.getCredits() + sellPrice);
+        playerRepository.save(player);
+
+        int remainingQuantity = inventoryItem.getQuantity() - 1;
+        if (remainingQuantity <= 0) {
+            inventoryItemRepository.delete(inventoryItem);
+        } else {
+            inventoryItem.setQuantity(remainingQuantity);
+            inventoryItemRepository.save(inventoryItem);
+        }
+
+        pullHistoryRepository.findFirstByPlayerIdAndItemIdAndSoldFalse(playerId, itemId)
+                .ifPresent(pull -> {
+                    pull.setSold(true);
+                    pullHistoryRepository.save(pull);
+                });
+
+        return new SellItemResponse(itemId, sellPrice, player.getCredits(), Math.max(remainingQuantity, 0));
     }
 }
