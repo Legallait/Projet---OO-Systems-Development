@@ -27,7 +27,7 @@ const BOOSTERS = [
 const styles = {
   page: {
     backgroundColor: "#0B0C10",
-    maxHeight: "100%",
+    height: "100%",
     padding: "64px 32px",
     fontFamily: "'Inter', sans-serif",
   },
