@@ -12,7 +12,8 @@ const styles = {
     height: "100vh",
   },
   content: {
-    flex: 1,
+    flex: "1 1 auto",
+    minHeight: 0,
     overflowY: "auto",
   },
 };

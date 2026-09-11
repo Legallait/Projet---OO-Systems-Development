@@ -62,9 +62,12 @@ const TIRAGES = [
 const styles = {
   page: {
     backgroundColor: "#0B0C10",
-    minHeight: "100%",
+    height: "100%",
+    boxSizing: "border-box",
     padding: "48px 32px",
     fontFamily: "'Inter', sans-serif",
+    display: "flex",
+    flexDirection: "column",
   },
   title: {
     fontFamily: "'Georgia', 'Cormorant Garamond', serif",
@@ -82,9 +85,14 @@ const styles = {
     border: "1px solid #C9A24B",
     borderRadius: "10px",
     overflow: "hidden",
+    flex: 1,
+    minHeight: 0,
+    display: "flex",
+    flexDirection: "column",
   },
   scrollArea: {
-    maxHeight: "420px",
+    flex: 1,
+    minHeight: 0,
     overflowY: "auto",
   },
   table: {

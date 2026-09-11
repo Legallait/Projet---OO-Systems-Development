@@ -6,9 +6,12 @@ import TopBoostersCard from "../components/TopBoostersCard";
 const styles = {
   page: {
     backgroundColor: "#0B0C10",
-    maxHeight: "100%",
+    height: "100%",
+    boxSizing: "border-box",
     padding: "48px 32px",
     fontFamily: "'Inter', sans-serif",
+    display: "flex",
+    flexDirection: "column",
   },
   title: {
     fontFamily: "'Georgia', 'Cormorant Garamond', serif",
@@ -25,7 +28,10 @@ const styles = {
   grid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
+    gridTemplateRows: "1fr 1fr",
     gap: "24px",
+    flex: 1,
+    minHeight: 0,
   },
 };
 
