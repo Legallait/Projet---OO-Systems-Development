@@ -10,4 +10,5 @@ public record PullHistoryResponse(
         Integer sellPrice,
         Boolean sold,
         LocalDateTime pulledAt
-) {}
+) {
+}

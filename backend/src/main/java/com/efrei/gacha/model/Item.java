@@ -29,6 +29,8 @@ public class Item {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    private String wikipediaUrl;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rarity_id", nullable = false)
     private Rarity rarity;

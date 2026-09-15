@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Gem } from "lucide-react";
 
 const styles = {
@@ -7,7 +8,9 @@ const styles = {
         border: "1px solid #C9A24B",
         borderRadius: "12px",
         padding: "12px",
-        width: "280px",
+        width: "100%",
+        maxWidth: "320px",
+        margin: "0 auto",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -62,11 +65,12 @@ const styles = {
 
 export default function BoosterCard({ booster }) {
     const [imageFailed, setImageFailed] = useState(false);
+    const navigate = useNavigate();
 
     return (
         <div style={styles.card}>
             <div style={{ ...styles.imageWrapper, background: booster.fallbackGradient }}>
-                {!imageFailed && (
+                {!imageFailed && booster.image && (
                     <img
                         src={booster.image}
                         alt={booster.name}
@@ -80,7 +84,12 @@ export default function BoosterCard({ booster }) {
                 <span style={styles.price}>{booster.price}</span>
                 <Gem size={14} style={styles.priceIcon} strokeWidth={1.5} />
             </div>
-            <button style={styles.button}>OUVRIR LE BOOSTER</button>
+            <button
+                style={styles.button}
+                onClick={() => navigate(`/boosters/${booster.id}/open`, { state: { booster } })}
+            >
+                OUVRIR LE BOOSTER
+            </button>
         </div>
     );
 }

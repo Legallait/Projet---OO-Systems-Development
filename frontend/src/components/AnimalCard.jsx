@@ -1,87 +1,39 @@
-import { useState } from "react";
+import {BrowserRouter, Routes, Route} from "react-router-dom";
+import Home from "./pages/Home";
+import NavBar from "./components/NavBar";
+import Collection from "./pages/Collection";
+import History from "./pages/History";
+import Stats from "./pages/Stats";
+import BoosterOpening from "./pages/BoosterOpening.jsx";
 
 const styles = {
-    card: {
-        backgroundColor: "#14151B",
-        border: "1px solid #C9A24B",
-        borderRadius: "12px",
-        padding: "10px",
-        width: "180px",
+    appWrapper: {
         display: "flex",
         flexDirection: "column",
+        height: "100vh",
     },
-    imageWrapper: {
-        position: "relative",
-        width: "100%",
-        height: "130px",
-        borderRadius: "8px",
-        overflow: "hidden",
-        marginBottom: "12px",
-    },
-    image: {
-        width: "100%",
-        height: "100%",
-        objectFit: "cover",
-        display: "block",
-    },
-    quantityBadge: {
-        position: "absolute",
-        top: "6px",
-        right: "6px",
-        backgroundColor: "#E8C77A",
-        color: "#2A1F06",
-        fontSize: "11px",
-        fontWeight: 700,
-        padding: "2px 8px",
-        borderRadius: "9999px",
-    },
-    name: {
-        fontFamily: "'Georgia', 'Cormorant Garamond', serif",
-        fontSize: "15px",
-        color: "#F2F1EC",
-        margin: "0 0 6px",
-    },
-    statusRow: {
-        display: "flex",
-        alignItems: "center",
-        gap: "6px",
-    },
-    statusDot: (color) => ({
-        width: "8px",
-        height: "8px",
-        borderRadius: "9999px",
-        backgroundColor: color,
-        flexShrink: 0,
-    }),
-    statusLabel: {
-        fontSize: "12px",
-        color: "#9C9A93",
+    content: {
+        flex: "1 1 auto",
+        minHeight: 0,
+        overflowY: "auto",
     },
 };
 
-export default function AnimalCard({ animal }) {
-    const [imageFailed, setImageFailed] = useState(false);
-
+export default function App() {
     return (
-        <div style={styles.card}>
-            <div style={{ ...styles.imageWrapper, background: animal.rarityColorHex }}>
-                {!imageFailed && (
-                    <img
-                        src={animal.image}
-                        alt={animal.itemName}
-                        style={styles.image}
-                        onError={() => setImageFailed(true)}
-                    />
-                )}
-                {animal.quantity > 1 && (
-                    <span style={styles.quantityBadge}>x{animal.quantity}</span>
-                )}
+        <BrowserRouter>
+            <div style={styles.appWrapper}>
+                <NavBar/>
+                <div style={styles.content}>
+                    <Routes>
+                        <Route path="/" element={<Home/>}/>
+                        <Route path="/collection" element={<Collection/>}/>
+                        <Route path="/history" element={<History/>}/>
+                        <Route path="/stats" element={<Stats/>}/>
+                        <Route path="/boosters/:boxId/open" element={<BoosterOpening/>}/>
+                    </Routes>
+                </div>
             </div>
-            <h3 style={styles.name}>{animal.itemName}</h3>
-            <div style={styles.statusRow}>
-                <span style={styles.statusDot(animal.rarityColorHex)} />
-                <span style={styles.statusLabel}>{animal.rarityName}</span>
-            </div>
-        </div>
+        </BrowserRouter>
     );
 }

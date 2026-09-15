@@ -97,6 +97,8 @@ public class BoxOpeningServiceImpl implements BoxOpeningService {
                     drawnItem.getId(),
                     drawnItem.getName(),
                     drawnItem.getImageUrl(),
+                    drawnItem.getDescription(),
+                    drawnItem.getWikipediaUrl(),
                     drawnItem.getRarity().getName(),
                     drawnItem.getRarity().getColorHex(),
                     drawnItem.getSellPrice(),
