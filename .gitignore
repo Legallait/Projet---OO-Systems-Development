@@ -33,6 +33,5 @@ out/
 *.swp
 *.tmp
 
-
-*.db
-data/*
+.db
+data/
