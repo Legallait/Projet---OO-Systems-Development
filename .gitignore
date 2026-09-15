@@ -32,3 +32,6 @@ out/
 *.bak
 *.swp
 *.tmp
+
+.db
+data/
