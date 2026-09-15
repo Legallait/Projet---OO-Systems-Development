@@ -1,30 +1,23 @@
 import { useEffect, useState } from "react";
-import HomeService from "../services/HomeService";
 import BoosterCard from "../components/BoosterCard";
+import HomeService from "../services/HomeService";
 
-const BIOME_VISUALS = {
-    "Coffre Savane": {
-        image: "/images/boosters/savane.png",
-        fallbackGradient: "linear-gradient(135deg, #7A3B1E, #D97A3D, #F2B45A)",
-    },
-    "Coffre Froid": {
-        image: "/images/boosters/froid.png",
-        fallbackGradient: "linear-gradient(135deg, #0B1F33, #2E6E8C, #A8D8E8)",
-    },
-    "Coffre Océan": {
-        image: "/images/boosters/ocean.png",
-        fallbackGradient: "linear-gradient(135deg, #0B2A4A, #14568C, #4FA8D8)",
-    },
-    "Coffre Forêt Tropicale": {
-        image: "/images/boosters/foret.png",
-        fallbackGradient: "linear-gradient(135deg, #0F2E1C, #1F5B37, #3E8B57)",
-    },
-};
+const VISUALS = [
+    { match: "savane", image: "/images/boosters/savane.png", fallbackGradient: "linear-gradient(135deg, #7A3B1E, #D97A3D, #F2B45A)" },
+    { match: "froid", image: "/images/boosters/froid.png", fallbackGradient: "linear-gradient(135deg, #0B1F3A, #1F4E6B, #A8D8E8)" },
+    { match: "oc", image: "/images/boosters/ocean.png", fallbackGradient: "linear-gradient(135deg, #0B2A4A, #14568C, #4FA8D8)" },
+    { match: "for", image: "/images/boosters/foret.png", fallbackGradient: "linear-gradient(135deg, #0F2E1C, #1F5B37, #3E8B57)" },
+];
 
 const DEFAULT_VISUAL = {
-    image: "/images/boosters/default.png",
-    fallbackGradient: "linear-gradient(135deg, #2A2A2A, #4A4A4A, #6A6A6A)",
+    image: null,
+    fallbackGradient: "linear-gradient(135deg, #2A1F06, #C9A24B, #F2D98A)",
 };
+
+function resolveVisual(name) {
+    const normalized = name.toLowerCase();
+    return VISUALS.find((v) => normalized.includes(v.match)) ?? DEFAULT_VISUAL;
+}
 
 const styles = {
     page: {
@@ -58,37 +51,37 @@ const styles = {
         lineHeight: 1.6,
         margin: 0,
     },
-    grid: {
-        display: "flex",
-        justifyContent: "center",
-        gap: "24px",
-        flexWrap: "wrap",
-        maxWidth: "1000px",
-        margin: "0 auto",
-    },
-    message: {
+    error: {
+        color: "#D9776B",
         textAlign: "center",
-        color: "#9C9A93",
-        fontSize: "15px",
+        marginBottom: "24px",
+    },
+    grid: {
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+        gap: "24px",
+        maxWidth: "1320px",
+        margin: "0 auto",
     },
 };
 
 export default function Home() {
     const [boosters, setBoosters] = useState([]);
-    const [status, setStatus] = useState("loading");
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         HomeService.getBoosters()
-            .then((boxes) => {
+            .then((boxes) =>
                 setBoosters(
                     boxes.map((box) => ({
-                        ...box,
-                        ...(BIOME_VISUALS[box.name] || DEFAULT_VISUAL),
+                        id: box.id,
+                        name: box.name,
+                        price: box.price,
+                        ...resolveVisual(box.name),
                     }))
-                );
-                setStatus("ready");
-            })
-            .catch(() => setStatus("error"));
+                )
+            )
+            .catch((err) => setError(err.message));
     }, []);
 
     return (
@@ -102,16 +95,13 @@ export default function Home() {
                 </p>
             </div>
 
-            {status === "loading" && <p style={styles.message}>Chargement des boosters...</p>}
-            {status === "error" && <p style={styles.message}>Impossible de charger les boosters.</p>}
+            {error && <p style={styles.error}>{error}</p>}
 
-            {status === "ready" && (
-                <div style={styles.grid}>
-                    {boosters.map((booster) => (
-                        <BoosterCard key={booster.id} booster={booster} />
-                    ))}
-                </div>
-            )}
+            <div style={styles.grid}>
+                {boosters.map((booster) => (
+                    <BoosterCard key={booster.id} booster={booster} />
+                ))}
+            </div>
         </div>
     );
 }

@@ -131,6 +131,7 @@ public class DataSeeder implements CommandLineRunner {
                         .name(resolveName(taxon))
                         .description(descriptions.get(taxon.id()))
                         .imageUrl(imageStorageService.downloadAndStore(taxon.id(), taxon.defaultPhoto().mediumUrl()))
+                        .wikipediaUrl(taxon.wikipediaUrl())
                         .sellPrice(tier.sellPrice())
                         .rarity(rarity)
                         .build()))
