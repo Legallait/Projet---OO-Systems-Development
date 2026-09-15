@@ -2,23 +2,10 @@ import {useState} from "react";
 import {createPortal} from "react-dom";
 import {X} from "lucide-react";
 
-/*
- * Card width/height are fluid (calc based on 100vw) so 5 cards always fit the
- * viewport without a horizontal scrollbar, instead of jumping between fixed
- * breakpoint sizes that can still overflow at in-between widths.
- * The "80px" constant here = 2 * booster-page horizontal padding (16px each)
- * + 4 * booster-cards-grid gap (12px each). Keep it in sync with BoosterOpening.jsx.
- */
 const CARD_WIDTH = "clamp(90px, calc((100vw - 80px) * 0.2), 320px)";
 const CARD_HEIGHT = "clamp(150px, calc((100vw - 80px) * 0.3125), 500px)";
 const IMAGE_HEIGHT = "clamp(65px, calc((100vw - 80px) * 0.14375), 230px)";
 
-/*
- * Below 820px there is no longer room to shrink 5 cards side by side and stay
- * readable, so the grid switches to a vertical list (see .booster-cards-grid
- * in BoosterOpening.jsx) and the card gets one fixed, comfortable mobile size
- * instead of continuing to shrink with the viewport.
- */
 const RESPONSIVE_CSS = `
 @media (max-width: 820px) {
   .animal-card { width: 260px !important; height: 420px !important; padding: 16px !important; }

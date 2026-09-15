@@ -15,8 +15,6 @@ body {
     background-color: #0B0C10;
 }
 
-/* Custom scrollbar to match the Gacha Faune dark/gold theme */
-
 .gold-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: #C9A24B #14151B;
