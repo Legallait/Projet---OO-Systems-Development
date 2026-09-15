@@ -1,63 +1,18 @@
+import { useEffect, useState } from "react";
 import { PawPrint } from "lucide-react";
+import historyService from "../services/historyService.js";
 
-const STATUS_COLORS = {
-  Vulnérable: "#4F8FE8",
-  "En danger": "#9B6BD9",
-  "En danger critique": "#E08A3C",
-  "Données insuffisantes": "#9C9A93",
-};
-
-const TIRAGES = [
-  {
-    id: 1,
-    date: "12 Mars 2026 - 18:42",
-    booster: "Booster Océan",
-    species: "Tortue Luth",
-    status: "Vulnérable",
-  },
-  {
-    id: 2,
-    date: "12 Mars 2026 - 18:40",
-    booster: "Booster Forêt Tropicale",
-    species: "Chimpanzé",
-    status: "En danger",
-  },
-  {
-    id: 3,
-    date: "11 Mars 2026 - 15:23",
-    booster: "Booster Savane",
-    species: "Lion d'Afrique",
-    status: "Vulnérable",
-  },
-  {
-    id: 4,
-    date: "10 Mars 2026 - 22:12",
-    booster: "Booster Océan",
-    species: "Orque",
-    status: "Données insuffisantes",
-  },
-  {
-    id: 5,
-    date: "09 Mars 2026 - 10:05",
-    booster: "Booster Forêt Tropicale",
-    species: "Gorille de montagne",
-    status: "En danger critique",
-  },
-  {
-    id: 6,
-    date: "08 Mars 2026 - 14:50",
-    booster: "Booster Savane",
-    species: "Girafe de Nubie",
-    status: "Vulnérable",
-  },
-  {
-    id: 7,
-    date: "07 Mars 2026 - 19:15",
-    booster: "Booster Savane",
-    species: "Rhinocéros Noir",
-    status: "En danger critique",
-  },
+const RARITIES = [
+  { id: 1, colorHex: "#B0B0B0", dropRate: 60.0, name: "Commun" },
+  { id: 2, colorHex: "#3B82F6", dropRate: 28.0, name: "Rare" },
+  { id: 3, colorHex: "#A855F7", dropRate: 10.0, name: "Épique" },
+  { id: 4, colorHex: "#F59E0B", dropRate: 2.0, name: "Légendaire" },
 ];
+
+function getRarityColor(rarityName) {
+  const match = RARITIES.find((r) => r.name === rarityName);
+  return match ? match.colorHex : "#9C9A93";
+}
 
 const styles = {
   page: {
@@ -155,7 +110,44 @@ const styles = {
   }),
 };
 
+function formatDate(isoString) {
+  const d = new Date(isoString);
+  const datePart = d.toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+  const timePart = d.toLocaleTimeString("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  return `${datePart} - ${timePart}`;
+}
+
 export default function History() {
+  const [tirages, setTirages] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    async function loadHistory() {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await historyService.getHistory(1);
+        setTirages(data);
+      } catch (err) {
+        setError(err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadHistory();
+  }, []);
+
+  if (isLoading) return <div style={styles.page}>Chargement…</div>;
+  if (error) return <div style={styles.page}>Erreur de chargement de l'historique.</div>;
+
   return (
     <div style={styles.page}>
       <h1 style={styles.title}>Historique des Tirages</h1>
@@ -172,19 +164,19 @@ export default function History() {
                 <th style={styles.th}>Date &amp; heure</th>
                 <th style={styles.th}>Booster</th>
                 <th style={styles.th}>Espèce obtenue</th>
-                <th style={styles.th}>Statut UICN</th>
+                <th style={styles.th}>Rareté</th>
               </tr>
             </thead>
             <tbody>
-              {TIRAGES.map((tirage) => {
-                const color = STATUS_COLORS[tirage.status] ?? "#9C9A93";
+              {tirages.map((tirage) => {
+                const color = getRarityColor(tirage.rarityName);
                 return (
-                  <tr key={tirage.id}>
+                  <tr key={tirage.itemId}>
                     <td style={{ ...styles.td, ...styles.dateCell }}>
-                      {tirage.date}
+                      {formatDate(tirage.pulledAt)}
                     </td>
                     <td style={{ ...styles.td, ...styles.boosterCell }}>
-                      {tirage.booster}
+                      {tirage.boxName}
                     </td>
                     <td style={styles.td}>
                       <span style={styles.speciesCell}>
@@ -193,13 +185,13 @@ export default function History() {
                           style={styles.speciesIcon}
                           strokeWidth={1.5}
                         />
-                        {tirage.species}
+                        {tirage.itemName}
                       </span>
                     </td>
                     <td style={styles.td}>
                       <span style={styles.statusBadge(color)}>
                         <span style={styles.statusDot(color)} />
-                        {tirage.status}
+                        {tirage.rarityName}
                       </span>
                     </td>
                   </tr>
