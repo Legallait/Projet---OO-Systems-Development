@@ -64,11 +64,11 @@ export default function AnimalCard({ animal }) {
 
     return (
         <div style={styles.card}>
-            <div style={{ ...styles.imageWrapper, background: animal.fallbackGradient }}>
+            <div style={{ ...styles.imageWrapper, background: animal.rarityColorHex }}>
                 {!imageFailed && (
                     <img
                         src={animal.image}
-                        alt={animal.name}
+                        alt={animal.itemName}
                         style={styles.image}
                         onError={() => setImageFailed(true)}
                     />
@@ -77,10 +77,10 @@ export default function AnimalCard({ animal }) {
                     <span style={styles.quantityBadge}>x{animal.quantity}</span>
                 )}
             </div>
-            <h3 style={styles.name}>{animal.name}</h3>
+            <h3 style={styles.name}>{animal.itemName}</h3>
             <div style={styles.statusRow}>
-                <span style={styles.statusDot(animal.statusColor)} />
-                <span style={styles.statusLabel}>{animal.statusLabel}</span>
+                <span style={styles.statusDot(animal.rarityColorHex)} />
+                <span style={styles.statusLabel}>{animal.rarityName}</span>
             </div>
         </div>
     );

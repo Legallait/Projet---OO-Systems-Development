@@ -1,96 +1,27 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AnimalCard from "../components/AnimalCard";
+import getCollection from "../services/collectionService.js";
 
-const STATUSES = [
-  { id: "lc", label: "Préoccupation mineure", color: "#9C9A93" },
-  { id: "nt", label: "Quasi menacée", color: "#5FA05F" },
-  { id: "vu", label: "Vulnérable", color: "#4F8FE8" },
-  { id: "en", label: "En danger", color: "#9B6BD9" },
-  { id: "cr", label: "En danger critique", color: "#E08A3C" },
-  { id: "ew", label: "Éteinte sauvage", color: "#D94F4F" },
-  { id: "ex", label: "Éteinte", color: "#7A2E2E" },
-];
-
-const ANIMALS = [
+const rarities = [
   {
-    id: "panthere",
-    name: "Panthère des neiges",
-    statusId: "en",
-    statusLabel: "En danger",
-    statusColor: "#9B6BD9",
-    quantity: 3,
-    image: "",
-    fallbackGradient: "linear-gradient(135deg, #1B2B3A, #3E5C73, #A9C4D4)",
+    id: 1,
+    color: "#B0B0B0",
+    label: "Commun",
   },
   {
-    id: "tigre",
-    name: "Tigre du Bengale",
-    statusId: "en",
-    statusLabel: "En danger",
-    statusColor: "#9B6BD9",
-    quantity: 1,
-    image: "",
-    fallbackGradient: "linear-gradient(135deg, #2B1B0E, #C9761F, #F2B24A)",
+    id: 2,
+    color: "#3B82F6",
+    label: "Rare",
   },
   {
-    id: "chimpanze",
-    name: "Chimpanzé",
-    statusId: "en",
-    statusLabel: "En danger",
-    statusColor: "#9B6BD9",
-    quantity: 2,
-    image: "",
-    fallbackGradient: "linear-gradient(135deg, #1E2A1A, #3E5A33, #6B8C57)",
+    id: 3,
+    color: "#A855F7",
+    label: "Épique",
   },
   {
-    id: "panda",
-    name: "Panda Géant",
-    statusId: "en",
-    statusLabel: "En danger",
-    statusColor: "#9B6BD9",
-    quantity: 1,
-    image: "",
-    fallbackGradient: "linear-gradient(135deg, #14201A, #2C4A38, #4F7A5D)",
-  },
-  {
-    id: "elephant",
-    name: "Éléphant d'Asie",
-    statusId: "en",
-    statusLabel: "En danger",
-    statusColor: "#9B6BD9",
-    quantity: 2,
-    image: "",
-    fallbackGradient: "linear-gradient(135deg, #16200F, #38401F, #5C6B32)",
-  },
-  {
-    id: "rhinoceros",
-    name: "Rhinocéros Noir",
-    statusId: "cr",
-    statusLabel: "En danger critique",
-    statusColor: "#E08A3C",
-    quantity: 1,
-    image: "",
-    fallbackGradient: "linear-gradient(135deg, #3A1E0E, #C9761F, #F2B24A)",
-  },
-  {
-    id: "girafe",
-    name: "Girafe de Nubie",
-    statusId: "vu",
-    statusLabel: "Vulnérable",
-    statusColor: "#4F8FE8",
-    quantity: 4,
-    image: "",
-    fallbackGradient: "linear-gradient(135deg, #123047, #2E6099, #7FB4E8)",
-  },
-  {
-    id: "requin",
-    name: "Grand Requin Blanc",
-    statusId: "vu",
-    statusLabel: "Vulnérable",
-    statusColor: "#4F8FE8",
-    quantity: 1,
-    image: "",
-    fallbackGradient: "linear-gradient(135deg, #0B2136, #1D5680, #4FA8D8)",
+    id: 4,
+    color: "#F59E0B",
+    label: "Légendaire",
   },
 ];
 
@@ -166,50 +97,78 @@ const styles = {
   },
 };
 
-export default function Collection() {
-  const [activeStatus, setActiveStatus] = useState(null);
+function getRarityColor(rarityName) {
+  const match = rarities.find((r) => r.label === rarityName);
+  return match ? match.color : "#9C9A93";
+}
 
-  const filteredAnimals = activeStatus
-    ? ANIMALS.filter((animal) => animal.statusId === activeStatus)
-    : ANIMALS;
+export default function Collection() {
+  const [animals, setAnimals] = useState([]);
+  const [activeRarity, setActiveRarity] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const filteredAnimals = activeRarity
+    ? animals.filter((animal) => animal.rarityName === activeRarity)
+    : animals;
+
+  useEffect(() => {
+    async function loadCollection() {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await getCollection(1);
+        const mapped = data.map((animal) => ({
+          ...animal,
+          rarityColor: getRarityColor(animal.rarityName),
+        }));
+        setAnimals(mapped);
+      } catch (err) {
+        setError(err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadCollection();
+  }, []);
+
+  if (isLoading) return <div style={styles.page}>Chargement…</div>;
+  if (error) return <div style={styles.page}>Erreur de chargement de la collection.</div>;
 
   return (
     <div style={styles.page}>
       <div style={styles.headerRow}>
         <div>
-          <h1 style={styles.title}>Votre Ménagerie ({ANIMALS.length})</h1>
+          <h1 style={styles.title}>Votre Ménagerie ({animals.length})</h1>
           <p style={styles.subtitle}>
             Consultez votre inventaire d'espèces collectées et triez par
-            statut de préservation UICN.
+            rareté.
           </p>
         </div>
         <button
-          style={styles.resetButton(activeStatus !== null)}
-          onClick={() => setActiveStatus(null)}
+          style={styles.resetButton(activeRarity !== null)}
+          onClick={() => setActiveRarity(null)}
         >
           RÉINITIALISER LE FILTRE
         </button>
       </div>
 
       <div style={styles.filterRow}>
-        {STATUSES.map((status) => (
+        {rarities.map((rarity) => (
           <button
-            key={status.id}
-            style={styles.filterPill(
-              activeStatus === status.id,
-              status.color
-            )}
-            onClick={() => setActiveStatus(status.id)}
+            key={rarity.id}
+            style={styles.filterPill(activeRarity === rarity.label, rarity.color)}
+            onClick={() => setActiveRarity(rarity.label)}
           >
-            <span style={styles.filterDot(status.color)} />
-            {status.label}
+            <span style={styles.filterDot(rarity.color)} />
+            {rarity.label}
           </button>
         ))}
       </div>
 
       <div style={styles.grid}>
         {filteredAnimals.map((animal) => (
-          <AnimalCard key={animal.id} animal={animal} />
+          <AnimalCard key={animal.itemId} animal={animal} />
         ))}
       </div>
     </div>
