@@ -1,4 +1,4 @@
-﻿# System
+# System
 .DS_Store
 Thumbs.db
 
@@ -33,6 +33,8 @@ out/
 *.swp
 *.tmp
 
-.db
-data/
-/backend/data
+# Backend : base H2 et photos d'especes, regenerees au premier demarrage
+/backend/data/
+*.mv.db
+*.lock.db
+*.trace.db

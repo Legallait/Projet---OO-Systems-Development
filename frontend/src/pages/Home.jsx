@@ -1,23 +1,7 @@
 import { useEffect, useState } from "react";
 import BoosterCard from "../components/BoosterCard";
 import HomeService from "../services/HomeService";
-
-const VISUALS = [
-    { match: "savane", image: "/images/boosters/savane.png", fallbackGradient: "linear-gradient(135deg, #7A3B1E, #D97A3D, #F2B45A)" },
-    { match: "froid", image: "/images/boosters/froid.png", fallbackGradient: "linear-gradient(135deg, #0B1F3A, #1F4E6B, #A8D8E8)" },
-    { match: "oc", image: "/images/boosters/ocean.png", fallbackGradient: "linear-gradient(135deg, #0B2A4A, #14568C, #4FA8D8)" },
-    { match: "for", image: "/images/boosters/foret.png", fallbackGradient: "linear-gradient(135deg, #0F2E1C, #1F5B37, #3E8B57)" },
-];
-
-const DEFAULT_VISUAL = {
-    image: null,
-    fallbackGradient: "linear-gradient(135deg, #2A1F06, #C9A24B, #F2D98A)",
-};
-
-function resolveVisual(name) {
-    const normalized = name.toLowerCase();
-    return VISUALS.find((v) => normalized.includes(v.match)) ?? DEFAULT_VISUAL;
-}
+import { resolveBoosterVisual } from "../services/boosterVisuals";
 
 const styles = {
     page: {
@@ -77,7 +61,7 @@ export default function Home() {
                         id: box.id,
                         name: box.name,
                         price: box.price,
-                        ...resolveVisual(box.name),
+                        ...resolveBoosterVisual(box.name),
                     }))
                 )
             )

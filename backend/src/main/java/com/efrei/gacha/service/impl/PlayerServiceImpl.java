@@ -3,8 +3,10 @@ package com.efrei.gacha.service.impl;
 import com.efrei.gacha.dto.InventoryItemResponse;
 import com.efrei.gacha.dto.PullHistoryResponse;
 import com.efrei.gacha.dto.SellItemResponse;
+import com.efrei.gacha.exception.InvalidCredentialsException;
 import com.efrei.gacha.exception.ItemNotInInventoryException;
 import com.efrei.gacha.exception.PlayerNotFoundException;
+import com.efrei.gacha.exception.UsernameAlreadyExistsException;
 import com.efrei.gacha.model.InventoryItem;
 import com.efrei.gacha.model.Item;
 import com.efrei.gacha.model.Player;
@@ -18,11 +20,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class PlayerServiceImpl implements PlayerService {
 
-    private static final int STARTING_CREDITS = 1000;
+    private static final int STARTING_CREDITS = 2500;
 
     private final PlayerRepository playerRepository;
     private final InventoryItemRepository inventoryItemRepository;
@@ -38,13 +41,27 @@ public class PlayerServiceImpl implements PlayerService {
     }
 
     @Override
-    public Player createPlayer(String username) {
+    public Player createPlayer(String username, String password) {
+        if (playerRepository.findByUsername(username).isPresent()) {
+            throw new UsernameAlreadyExistsException(username);
+        }
         Player player = Player.builder()
                 .username(username)
+                .password(password)
                 .credits(STARTING_CREDITS)
                 .createdAt(LocalDateTime.now())
                 .build();
         return playerRepository.save(player);
+    }
+
+    @Override
+    public Player login(String username, String password) {
+        Player player = playerRepository.findByUsername(username)
+                .orElseThrow(InvalidCredentialsException::new);
+        if (!Objects.equals(player.getPassword(), password)) {
+            throw new InvalidCredentialsException();
+        }
+        return player;
     }
 
     @Override

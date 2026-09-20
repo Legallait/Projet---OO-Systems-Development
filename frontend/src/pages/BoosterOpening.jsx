@@ -4,13 +4,16 @@ import { Gem, ArrowLeft } from "lucide-react";
 import AnimalCard from "../components/AnimalCard";
 import OpeningService from "../services/OpeningService";
 import { resolveAssetUrl } from "../services/apiClient";
-
-const FALLBACK_GRADIENT = "linear-gradient(135deg, #2A1F06, #C9A24B, #F2D98A)";
+import { resolveBoosterVisual } from "../services/boosterVisuals";
 
 const KEYFRAMES = `
 @keyframes packGlow {
-  0%, 100% { box-shadow: 0 0 24px 4px rgba(201,162,75,0.25); }
-  50% { box-shadow: 0 0 40px 12px rgba(201,162,75,0.5); }
+  0%, 100% { box-shadow: 0 0 24px 2px color-mix(in srgb, var(--accent) 30%, transparent); }
+  50% { box-shadow: 0 0 44px 10px color-mix(in srgb, var(--accent) 55%, transparent); }
+}
+@keyframes packShine {
+  0% { transform: translateX(-140%) skewX(-20deg); }
+  55%, 100% { transform: translateX(260%) skewX(-20deg); }
 }
 @keyframes packShake {
   0% { transform: translateX(0) rotate(0deg) scale(1); }
@@ -26,6 +29,23 @@ const KEYFRAMES = `
   0% { transform: scale(0.4) rotateY(90deg); opacity: 0; }
   60% { transform: scale(1.05) rotateY(0deg); opacity: 1; }
   100% { transform: scale(1) rotateY(0deg); opacity: 1; }
+}
+.booster-page { height: 100%; overflow: hidden; }
+@media (max-width: 820px), (max-height: 599px) {
+  .booster-page { height: auto; min-height: 100%; overflow: visible; }
+}
+@media (min-width: 821px) and (min-height: 600px) {
+  .booster-stage { container-type: size; }
+  .booster-cards-grid { overflow: visible !important; }
+}
+@supports (height: 1cqh) {
+  @media (min-width: 821px) and (min-height: 600px) {
+    .booster-cards-grid {
+      --card-h: min(clamp(150px, calc((100vw - 80px) * 0.3125), 500px), calc(100cqh - 24px));
+    }
+    .booster-page .animal-card { height: var(--card-h) !important; }
+    .booster-page .animal-card-image { height: calc(var(--card-h) * 0.46) !important; }
+  }
 }
 @media (max-width: 900px) {
   .booster-title { font-size: 24px !important; margin-bottom: 20px !important; }
@@ -52,8 +72,8 @@ const KEYFRAMES = `
 const styles = {
     page: {
         backgroundColor: "#0B0C10",
-        minHeight: "100%",
-        padding: "40px 16px 56px",
+        boxSizing: "border-box",
+        padding: "12px 12px 20px",
         fontFamily: "'Inter', sans-serif",
         display: "flex",
         flexDirection: "column",
@@ -69,14 +89,16 @@ const styles = {
         color: "#9C9A93",
         fontSize: "13px",
         cursor: "pointer",
-        marginBottom: "16px",
+        marginBottom: "4px",
+        flexShrink: 0,
     },
     title: {
         fontFamily: "'Georgia', 'Cormorant Garamond', serif",
         fontWeight: 400,
         fontSize: "34px",
         color: "#F2F1EC",
-        margin: "0 0 36px",
+        margin: "0 0 16px",
+        flexShrink: 0,
         textAlign: "center",
     },
     error: {
@@ -85,6 +107,9 @@ const styles = {
         marginBottom: "16px",
     },
     stage: {
+        flex: "1 1 auto",
+        minHeight: 0,
+        width: "100%",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -112,14 +137,49 @@ const styles = {
         width: "100%",
         height: "100%",
         objectFit: "cover",
+        filter: "saturate(1.1) contrast(1.05)",
+    },
+    packShade: {
+        position: "absolute",
+        inset: 0,
+        background:
+            "linear-gradient(180deg, rgba(11,12,16,0.35) 0%, rgba(11,12,16,0) 30%, rgba(11,12,16,0) 55%, rgba(11,12,16,0.85) 100%)",
+        pointerEvents: "none",
+    },
+    packFrame: {
+        position: "absolute",
+        inset: "8px",
+        borderRadius: "10px",
+        border: "1px solid rgba(232,199,122,0.55)",
+        pointerEvents: "none",
+    },
+    packShine: {
+        position: "absolute",
+        top: 0,
+        bottom: 0,
+        left: 0,
+        width: "45%",
+        background:
+            "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.28) 50%, rgba(255,255,255,0) 100%)",
+        animation: "packShine 3.6s ease-in-out infinite",
+        pointerEvents: "none",
+    },
+    packName: {
+        position: "relative",
+        fontFamily: "'Georgia', 'Cormorant Garamond', serif",
+        color: "#F2F1EC",
+        fontSize: "20px",
+        textAlign: "center",
+        textShadow: "0 2px 10px rgba(0,0,0,0.8)",
+        marginBottom: "10px",
     },
     packLabel: {
         position: "relative",
-        color: "#F2F1EC",
+        color: "#E8C77A",
         fontSize: "12px",
         fontWeight: 700,
         letterSpacing: "0.08em",
-        textShadow: "0 2px 8px rgba(0,0,0,0.6)",
+        textShadow: "0 2px 8px rgba(0,0,0,0.8)",
     },
     cardsGrid: {
         display: "flex",
@@ -129,17 +189,19 @@ const styles = {
         width: "100%",
         maxWidth: "1720px",
         overflowX: "auto",
-        padding: "4px 4px 12px",
+        padding: "4px 0",
     },
     cardWrapper: {
         opacity: 0,
     },
     actions: {
-        marginTop: "40px",
+        marginTop: "16px",
+        flexShrink: 0,
         display: "flex",
-        flexDirection: "column",
+        flexWrap: "wrap",
+        justifyContent: "center",
         alignItems: "center",
-        gap: "16px",
+        gap: "16px 24px",
     },
     creditsRow: {
         display: "flex",
@@ -193,8 +255,7 @@ export default function BoosterOpening() {
                     id: box.id,
                     name: box.name,
                     price: box.price,
-                    image: null,
-                    fallbackGradient: FALLBACK_GRADIENT,
+                    ...resolveBoosterVisual(box.name),
                 })
             )
             .catch((err) => setError(err.message));
@@ -247,12 +308,16 @@ export default function BoosterOpening() {
             )}
             {error && <p style={styles.error}>{error}</p>}
 
-            <div style={{ ...styles.stage, ...(phase !== "revealed" ? styles.stageReady : {}) }}>
+            <div
+                className="booster-stage"
+                style={{ ...styles.stage, ...(phase !== "revealed" ? styles.stageReady : {}) }}
+            >
                 {phase !== "revealed" && booster && (
                     <div
                         className="booster-pack"
                         style={{
                             ...styles.pack,
+                            "--accent": booster.accent ?? "#C9A24B",
                             background: booster.fallbackGradient,
                             animation:
                                 phase === "opening"
@@ -262,8 +327,16 @@ export default function BoosterOpening() {
                         onClick={phase === "ready" ? handleOpen : undefined}
                     >
                         {booster.image && (
-                            <img src={booster.image} alt={booster.name} style={styles.packImage} />
+                            <img
+                                src={booster.image}
+                                alt={booster.name}
+                                style={{ ...styles.packImage, objectPosition: booster.focus }}
+                            />
                         )}
+                        <div style={styles.packShade} />
+                        <div style={styles.packFrame} />
+                        {phase === "ready" && <div style={styles.packShine} />}
+                        <span style={styles.packName}>{booster.name}</span>
                         {phase === "ready" && (
                             <span style={styles.packLabel}>APPUYEZ POUR OUVRIR</span>
                         )}

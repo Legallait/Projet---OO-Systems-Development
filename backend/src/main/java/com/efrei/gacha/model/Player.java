@@ -1,5 +1,6 @@
 package com.efrei.gacha.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -27,6 +28,9 @@ public class Player {
     private Long id;
 
     private String username;
+
+    @JsonIgnore
+    private String password;
 
     private Integer credits;
 

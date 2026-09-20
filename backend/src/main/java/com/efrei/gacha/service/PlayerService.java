@@ -9,7 +9,9 @@ import java.util.List;
 
 public interface PlayerService {
 
-    Player createPlayer(String username);
+    Player createPlayer(String username, String password);
+
+    Player login(String username, String password);
 
     Player getPlayer(Long id);
 
