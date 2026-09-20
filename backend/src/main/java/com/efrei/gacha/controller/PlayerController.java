@@ -6,6 +6,7 @@ import com.efrei.gacha.dto.PullHistoryResponse;
 import com.efrei.gacha.dto.SellItemResponse;
 import com.efrei.gacha.exception.ItemNotInInventoryException;
 import com.efrei.gacha.exception.PlayerNotFoundException;
+import com.efrei.gacha.exception.UsernameAlreadyExistsException;
 import com.efrei.gacha.model.Player;
 import com.efrei.gacha.service.PlayerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,10 +44,18 @@ public class PlayerController {
         return response;
     }
 
+    @ExceptionHandler(UsernameAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Map<String, String> handleUsernameAlreadyExists(UsernameAlreadyExistsException e) {
+        Map<String, String> response = new HashMap<>();
+        response.put("message", e.getMessage());
+        return response;
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Player createPlayer(@RequestBody CreatePlayerRequest request) {
-        return playerService.createPlayer(request.username());
+        return playerService.createPlayer(request.username(), request.password());
     }
 
     @GetMapping("/{playerId}")
