@@ -38,3 +38,5 @@ out/
 *.mv.db
 *.lock.db
 *.trace.db
+
+*species-images*
