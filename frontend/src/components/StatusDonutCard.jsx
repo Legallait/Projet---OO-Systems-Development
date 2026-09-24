@@ -80,28 +80,28 @@ const styles = {
 };
 
 export default function StatusDonutCard({
-  data = [
-    { label: "En danger (EN)", value: 14, color: "#9B6BD9" },
-    { label: "Vulnérable (VU)", value: 24, color: "#4F8FE8" },
-    { label: "Critique (CR)", value: 8, color: "#E08A3C" },
-    { label: "Éteinte (EX)", value: 12, color: "#D94F4F" },
-  ],
+  title = "RÉPARTITION PAR STATUT UICN",
+  emptyLabel = "ESPÈCES",
+  data = [],
 }) {
   const total = data.reduce((sum, d) => sum + d.value, 0);
 
   let cumulative = 0;
-  const gradientStops = data
-    .map((d) => {
-      const start = (cumulative / total) * 100;
-      cumulative += d.value;
-      const end = (cumulative / total) * 100;
-      return `${d.color} ${start}% ${end}%`;
-    })
-    .join(", ");
+  const gradientStops =
+    total > 0
+      ? data
+          .map((d) => {
+            const start = (cumulative / total) * 100;
+            cumulative += d.value;
+            const end = (cumulative / total) * 100;
+            return `${d.color} ${start}% ${end}%`;
+          })
+          .join(", ")
+      : "#24262E 0% 100%";
 
   return (
     <div style={styles.card}>
-      <span style={styles.label}>RÉPARTITION PAR STATUT UICN</span>
+      <span style={styles.label}>{title}</span>
       <div style={styles.content}>
         <div style={styles.donutWrapper}>
           <div
@@ -113,12 +113,15 @@ export default function StatusDonutCard({
             }}
           />
           <div style={styles.donutHole}>
-            <span style={styles.donutCaption}>ESPÈCES</span>
+            <span style={styles.donutCaption}>{emptyLabel}</span>
             <span style={styles.donutTotal}>{total}</span>
           </div>
         </div>
 
         <div style={styles.legend}>
+          {data.length === 0 && (
+            <span style={styles.legendLeft}>Aucune donnée</span>
+          )}
           {data.map((d) => (
             <div key={d.label} style={styles.legendRow}>
               <span style={styles.legendLeft}>

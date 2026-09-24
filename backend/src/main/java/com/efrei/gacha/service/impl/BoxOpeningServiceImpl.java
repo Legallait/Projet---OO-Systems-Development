@@ -17,6 +17,7 @@ import com.efrei.gacha.repository.InventoryItemRepository;
 import com.efrei.gacha.repository.PlayerRepository;
 import com.efrei.gacha.repository.PullHistoryRepository;
 import com.efrei.gacha.service.BoxOpeningService;
+import com.efrei.gacha.service.StatsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,18 +39,21 @@ public class BoxOpeningServiceImpl implements BoxOpeningService {
     private final BoxItemRepository boxItemRepository;
     private final InventoryItemRepository inventoryItemRepository;
     private final PullHistoryRepository pullHistoryRepository;
+    private final StatsService statsService;
 
     @Autowired
     public BoxOpeningServiceImpl(PlayerRepository playerRepository,
                                  BoxRepository boxRepository,
                                  BoxItemRepository boxItemRepository,
                                  InventoryItemRepository inventoryItemRepository,
-                                 PullHistoryRepository pullHistoryRepository) {
+                                 PullHistoryRepository pullHistoryRepository,
+                                 StatsService statsService) {
         this.playerRepository = playerRepository;
         this.boxRepository = boxRepository;
         this.boxItemRepository = boxItemRepository;
         this.inventoryItemRepository = inventoryItemRepository;
         this.pullHistoryRepository = pullHistoryRepository;
+        this.statsService = statsService;
     }
 
     @Override
@@ -107,6 +111,8 @@ public class BoxOpeningServiceImpl implements BoxOpeningService {
 
             log.info("Player {} opened box {} and got item {}", playerId, boxId, drawnItem.getId());
         }
+
+        statsService.recordOpening(playerId, box.getName());
 
         return results;
     }
