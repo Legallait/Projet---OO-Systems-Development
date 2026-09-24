@@ -65,30 +65,42 @@ const styles = {
   },
 };
 
-export default function RarestSpeciesCard({
-  species = {
-    name: "Grizzly de Californie",
-    rarity: "LÉGENDAIRE",
-    statusLabel: "Éteint (EX)",
-    obtainedDate: "04 Mars 2026",
-    obtainedFrom: "Booster Forêt",
-    image: "",
-  },
-}) {
+export default function RarestSpeciesCard({ species }) {
+  if (!species) {
+    return (
+      <div style={styles.card}>
+        <span style={styles.label}>ESPÈCE LA PLUS RARE OBTENUE</span>
+        <p style={{ color: "#9C9A93", fontSize: "13px" }}>
+          Aucune carte obtenue pour le moment.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div style={styles.card}>
       <span style={styles.label}>ESPÈCE LA PLUS RARE OBTENUE</span>
       <div style={styles.content}>
-        <div style={styles.imageWrapper}>
-          <img src={species.image} alt={species.name} style={styles.image} />
-        </div>
+        {species.image && (
+          <div style={styles.imageWrapper}>
+            <img
+              src={species.image}
+              alt={species.itemName}
+              style={styles.image}
+            />
+          </div>
+        )}
         <div style={styles.info}>
-          <span style={styles.badge}>{species.rarity}</span>
-          <h3 style={styles.name}>{species.name}</h3>
-          <span style={styles.status}>Statut : {species.statusLabel}</span>
-          <span style={styles.meta}>
-            Obtenu le {species.obtainedDate} dans {species.obtainedFrom}
+          <span
+            style={{
+              ...styles.badge,
+              borderColor: species.rarityColorHex,
+              color: species.rarityColorHex,
+            }}
+          >
+            {species.rarityName?.toUpperCase()}
           </span>
+          <h3 style={styles.name}>{species.itemName}</h3>
         </div>
       </div>
     </div>

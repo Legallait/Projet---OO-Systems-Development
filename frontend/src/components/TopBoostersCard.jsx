@@ -51,38 +51,40 @@ const styles = {
   }),
 };
 
-export default function TopBoostersCard({
-  boosters = [
-    { name: "Savane", count: 42, color: "#D97A3D" },
-    { name: "Océan", count: 28, color: "#4F8FE8" },
-    { name: "Forêt", count: 18, color: "#5FA05F" },
-  ],
-}) {
-  const maxCount = Math.max(...boosters.map((b) => b.count));
+export default function TopBoostersCard({ boosters = [] }) {
+  const maxCount = boosters.length
+    ? Math.max(...boosters.map((b) => b.count))
+    : 0;
 
   return (
     <div style={styles.card}>
       <span style={styles.label}>BOOSTERS LES PLUS OUVERTS</span>
-      <div style={styles.list}>
-        {boosters.map((booster) => (
-          <div key={booster.name} style={styles.row}>
-            <div style={styles.rowTop}>
-              <span style={styles.boosterName}>{booster.name}</span>
-              <span style={styles.boosterCount}>
-                {booster.count} ouvertures
-              </span>
+      {boosters.length === 0 ? (
+        <p style={{ color: "#9C9A93", fontSize: "13px" }}>
+          Aucun booster ouvert pour le moment.
+        </p>
+      ) : (
+        <div style={styles.list}>
+          {boosters.map((booster) => (
+            <div key={booster.name} style={styles.row}>
+              <div style={styles.rowTop}>
+                <span style={styles.boosterName}>{booster.name}</span>
+                <span style={styles.boosterCount}>
+                  {booster.count} ouvertures
+                </span>
+              </div>
+              <div style={styles.track}>
+                <div
+                  style={styles.bar(
+                    (booster.count / maxCount) * 100,
+                    booster.color
+                  )}
+                />
+              </div>
             </div>
-            <div style={styles.track}>
-              <div
-                style={styles.bar(
-                  (booster.count / maxCount) * 100,
-                  booster.color
-                )}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

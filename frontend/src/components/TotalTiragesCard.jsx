@@ -45,19 +45,21 @@ const styles = {
 };
 
 export default function TotalTiragesCard({
-  total = 136,
+  total = 0,
   caption = "Boosters invoqués à ce jour",
-  weeklyDelta = 12,
+  weeklyDelta,
 }) {
   return (
     <div style={styles.card}>
       <span style={styles.label}>TOTAL DES TIRAGES</span>
       <p style={styles.value}>{total}</p>
       <p style={styles.caption}>{caption}</p>
-      <span style={styles.trend}>
-        <TrendingUp size={14} strokeWidth={2} />
-        +{weeklyDelta} tirages cette semaine
-      </span>
+      {typeof weeklyDelta === "number" && (
+        <span style={styles.trend}>
+          <TrendingUp size={14} strokeWidth={2} />
+          +{weeklyDelta} tirages cette semaine
+        </span>
+      )}
     </div>
   );
 }
