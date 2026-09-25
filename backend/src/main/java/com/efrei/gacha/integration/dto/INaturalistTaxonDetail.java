@@ -5,6 +5,4 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record INaturalistTaxonDetail(
-        Long id,
-        @JsonProperty("wikipedia_summary") String wikipediaSummary
-) {}
+        Long id, @JsonProperty("wikipedia_summary") String wikipediaSummary) {}

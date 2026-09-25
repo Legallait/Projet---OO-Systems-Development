@@ -47,13 +47,23 @@ const KEYFRAMES = `
     .booster-page .animal-card-image { height: calc(var(--card-h) * 0.46) !important; }
   }
 }
+@media (max-width: 820px) {
+  .booster-actions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100%;
+    max-width: 320px;
+    gap: 12px !important;
+  }
+  .booster-credits { justify-content: center; }
+  .booster-actions button { width: 100%; padding-left: 16px !important; padding-right: 16px !important; }
+}
 @media (max-width: 900px) {
   .booster-title { font-size: 24px !important; margin-bottom: 20px !important; }
-  .booster-pack { width: 200px !important; height: 260px !important; }
 }
 @media (max-width: 500px) {
   .booster-title { font-size: 20px !important; margin-bottom: 16px !important; }
-  .booster-pack { width: 160px !important; height: 210px !important; padding: 14px !important; }
+  .booster-pack { padding: 16px !important; }
 }
 @media (max-width: 820px) {
   .booster-cards-grid {
@@ -115,11 +125,14 @@ const styles = {
         justifyContent: "center",
     },
     stageReady: {
-        minHeight: "360px",
+        minHeight: "420px",
     },
     pack: {
-        width: "260px",
-        height: "340px",
+        // Grows with the screen, limited by the available width and height (13:17 like a card pack).
+        width: "min(380px, 80vw, calc((100vh - 230px) * 13 / 17))",
+        minWidth: "200px",
+        aspectRatio: "13 / 17",
+        boxSizing: "border-box",
         borderRadius: "16px",
         border: "1px solid #C9A24B",
         display: "flex",
@@ -168,7 +181,8 @@ const styles = {
         position: "relative",
         fontFamily: "'Georgia', 'Cormorant Garamond', serif",
         color: "#F2F1EC",
-        fontSize: "20px",
+        fontSize: "clamp(20px, 5vw, 28px)",
+        lineHeight: 1.2,
         textAlign: "center",
         textShadow: "0 2px 10px rgba(0,0,0,0.8)",
         marginBottom: "10px",
@@ -176,7 +190,7 @@ const styles = {
     packLabel: {
         position: "relative",
         color: "#E8C77A",
-        fontSize: "12px",
+        fontSize: "clamp(12px, 3vw, 14px)",
         fontWeight: 700,
         letterSpacing: "0.08em",
         textShadow: "0 2px 8px rgba(0,0,0,0.8)",
@@ -362,8 +376,8 @@ export default function BoosterOpening() {
             </div>
 
             {phase === "revealed" && (
-                <div style={styles.actions}>
-                    <div style={styles.creditsRow}>
+                <div className="booster-actions" style={styles.actions}>
+                    <div className="booster-credits" style={styles.creditsRow}>
                         <Gem size={14} style={styles.creditsIcon} strokeWidth={1.5} />
                         <span>{remainingCredits} restantes</span>
                     </div>

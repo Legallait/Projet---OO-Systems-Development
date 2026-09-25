@@ -1,15 +1,14 @@
 package com.efrei.gacha.storage;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 @Component
 public class SpeciesImageStorageService {
@@ -24,9 +23,7 @@ public class SpeciesImageStorageService {
         requestFactory.setConnectTimeout(5_000);
         requestFactory.setReadTimeout(10_000);
 
-        this.restClient = RestClient.builder()
-                .requestFactory(requestFactory)
-                .build();
+        this.restClient = RestClient.builder().requestFactory(requestFactory).build();
         this.storageDirectory = Path.of(storagePath);
     }
 
@@ -34,10 +31,7 @@ public class SpeciesImageStorageService {
         try {
             Files.createDirectories(storageDirectory);
 
-            byte[] imageBytes = restClient.get()
-                    .uri(remoteImageUrl)
-                    .retrieve()
-                    .body(byte[].class);
+            byte[] imageBytes = restClient.get().uri(remoteImageUrl).retrieve().body(byte[].class);
 
             String filename = taxonId + "." + extractExtension(remoteImageUrl);
             Files.write(storageDirectory.resolve(filename), imageBytes);

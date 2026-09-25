@@ -7,17 +7,16 @@ import com.efrei.gacha.integration.dto.PlaceAutocompleteResponse;
 import com.efrei.gacha.integration.dto.SpeciesCountResult;
 import com.efrei.gacha.integration.dto.SpeciesCountsResponse;
 import com.efrei.gacha.integration.dto.TaxaDetailResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClient;
-
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClient;
 
 @Component
 public class INaturalistClient {
@@ -40,7 +39,8 @@ public class INaturalistClient {
 
     public Long resolvePlaceId(String placeName) {
         try {
-            PlaceAutocompleteResponse response = restClient.get()
+            PlaceAutocompleteResponse response = restClient
+                    .get()
                     .uri(uriBuilder -> uriBuilder
                             .path("/places/autocomplete")
                             .queryParam("q", placeName)
@@ -48,7 +48,9 @@ public class INaturalistClient {
                     .retrieve()
                     .body(PlaceAutocompleteResponse.class);
 
-            if (response == null || response.results() == null || response.results().isEmpty()) {
+            if (response == null
+                    || response.results() == null
+                    || response.results().isEmpty()) {
                 log.warn("Aucun lieu trouve pour {}", placeName);
                 return null;
             }
@@ -67,9 +69,11 @@ public class INaturalistClient {
 
     public List<INaturalistTaxon> getSpeciesByConservationStatus(String csiCode, int limit, Long placeId) {
         try {
-            SpeciesCountsResponse response = restClient.get()
+            SpeciesCountsResponse response = restClient
+                    .get()
                     .uri(uriBuilder -> {
-                        uriBuilder.path("/observations/species_counts")
+                        uriBuilder
+                                .path("/observations/species_counts")
                                 .queryParam("csi", csiCode)
                                 .queryParam("per_page", limit);
                         if (placeId != null) {
@@ -86,7 +90,8 @@ public class INaturalistClient {
 
             return response.results().stream()
                     .map(SpeciesCountResult::taxon)
-                    .filter(taxon -> taxon.defaultPhoto() != null && taxon.defaultPhoto().mediumUrl() != null)
+                    .filter(taxon ->
+                            taxon.defaultPhoto() != null && taxon.defaultPhoto().mediumUrl() != null)
                     .toList();
         } catch (RuntimeException e) {
             log.warn("Appel iNaturalist echoue pour le code IUCN {} (place {}) : {}", csiCode, placeId, e.getMessage());
@@ -109,10 +114,8 @@ public class INaturalistClient {
     private Map<Long, String> fetchDescriptionsBatch(List<Long> taxonIds) {
         try {
             String ids = taxonIds.stream().map(String::valueOf).collect(Collectors.joining(","));
-            TaxaDetailResponse response = restClient.get()
-                    .uri("/taxa/{ids}", ids)
-                    .retrieve()
-                    .body(TaxaDetailResponse.class);
+            TaxaDetailResponse response =
+                    restClient.get().uri("/taxa/{ids}", ids).retrieve().body(TaxaDetailResponse.class);
 
             if (response == null || response.results() == null) {
                 return Map.of();
@@ -120,7 +123,8 @@ public class INaturalistClient {
 
             return response.results().stream()
                     .filter(taxon -> taxon.wikipediaSummary() != null)
-                    .collect(Collectors.toMap(INaturalistTaxonDetail::id, taxon -> stripHtml(taxon.wikipediaSummary())));
+                    .collect(
+                            Collectors.toMap(INaturalistTaxonDetail::id, taxon -> stripHtml(taxon.wikipediaSummary())));
         } catch (RuntimeException e) {
             log.warn("Recuperation des descriptions echouee : {}", e.getMessage());
             return Map.of();

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { PawPrint } from "lucide-react";
-import historyService from "../services/historyService.js";
+import { PawPrint, Gem } from "lucide-react";
+import historyService from "../services/HistoryService.js";
+import { getCurrentPlayer } from "../services/AuthService";
 
 const RARITIES = [
   { id: 1, colorHex: "#B0B0B0", dropRate: 60.0, name: "Commun" },
@@ -12,6 +13,24 @@ const RARITIES = [
 function getRarityColor(rarityName) {
   const match = RARITIES.find((r) => r.name === rarityName);
   return match ? match.colorHex : "#9C9A93";
+}
+
+const OPERATION_COLORS = {
+  pull: "#E8C77A",
+  sale: "#5FA05F",
+  sold: "#9C9A93",
+};
+
+// One row per pull, plus one row per sale (dated with soldAt), newest first.
+function buildTimeline(pulls) {
+  const events = [];
+  for (const pull of pulls) {
+    events.push({ ...pull, type: "pull", key: `pull-${pull.pullId}`, date: pull.pulledAt });
+    if (pull.sold && pull.soldAt) {
+      events.push({ ...pull, type: "sale", key: `sale-${pull.pullId}`, date: pull.soldAt });
+    }
+  }
+  return events.sort((a, b) => new Date(b.date) - new Date(a.date));
 }
 
 const styles = {
@@ -128,14 +147,15 @@ export default function History() {
   const [tirages, setTirages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const playerId = getCurrentPlayer()?.id ?? 1;
 
   useEffect(() => {
     async function loadHistory() {
       setIsLoading(true);
       setError(null);
       try {
-        const data = await historyService.getHistory(1);
-        setTirages(data);
+        const data = await historyService.getHistory(playerId);
+        setTirages(buildTimeline(data));
       } catch (err) {
         setError(err);
       } finally {
@@ -143,7 +163,7 @@ export default function History() {
       }
     }
     loadHistory();
-  }, []);
+  }, [playerId]);
 
   if (isLoading) return <div style={styles.page}>Chargement…</div>;
   if (error) return <div style={styles.page}>Erreur de chargement de l'historique.</div>;
@@ -152,8 +172,8 @@ export default function History() {
     <div style={styles.page}>
       <h1 style={styles.title}>Historique des Tirages</h1>
       <p style={styles.subtitle}>
-        Retrouvez la chronologie complète de vos ouvertures de boosters et de
-        vos acquisitions.
+        Retrouvez la chronologie complète de vos ouvertures de boosters, de
+        vos acquisitions et de vos ventes.
       </p>
 
       <div style={styles.tableWrapper}>
@@ -162,6 +182,7 @@ export default function History() {
             <thead>
               <tr style={styles.theadRow}>
                 <th style={styles.th}>Date &amp; heure</th>
+                <th style={styles.th}>Opération</th>
                 <th style={styles.th}>Booster</th>
                 <th style={styles.th}>Espèce obtenue</th>
                 <th style={styles.th}>Rareté</th>
@@ -170,10 +191,30 @@ export default function History() {
             <tbody>
               {tirages.map((tirage) => {
                 const color = getRarityColor(tirage.rarityName);
+                const isSale = tirage.type === "sale";
+                const isSoldPull = !isSale && tirage.sold;
+                const operationColor = isSoldPull
+                  ? OPERATION_COLORS.sold
+                  : OPERATION_COLORS[tirage.type];
+                const salePrice = tirage.soldPrice ?? tirage.sellPrice;
                 return (
-                  <tr key={tirage.itemId}>
+                  <tr key={tirage.key}>
                     <td style={{ ...styles.td, ...styles.dateCell }}>
-                      {formatDate(tirage.pulledAt)}
+                      {formatDate(tirage.date)}
+                    </td>
+                    <td style={styles.td}>
+                      <span style={styles.statusBadge(operationColor)}>
+                        {isSale ? (
+                          <>
+                            Vente +{salePrice}
+                            <Gem size={12} strokeWidth={1.8} />
+                          </>
+                        ) : isSoldPull ? (
+                          "Vendu"
+                        ) : (
+                          "Tirage"
+                        )}
+                      </span>
                     </td>
                     <td style={{ ...styles.td, ...styles.boosterCell }}>
                       {tirage.boxName}

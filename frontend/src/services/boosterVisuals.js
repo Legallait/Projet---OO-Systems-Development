@@ -7,21 +7,21 @@ const VISUALS = [
         fallbackGradient: "linear-gradient(135deg, #7A3B1E, #D97A3D, #F2B45A)",
     },
     {
-        match: ["froid", "polaire", "arctique"],
+        match: ["banquise", "froid", "polaire", "arctique"],
         image: "/images/boosters/froid.png",
         focus: "28% 45%",
         accent: "#7CD3F0",
         fallbackGradient: "linear-gradient(135deg, #0B1F3A, #1F4E6B, #A8D8E8)",
     },
     {
-        match: ["océan", "ocean"],
+        match: ["récif", "recif", "océan", "ocean"],
         image: "/images/boosters/ocean.png",
         focus: "50% 45%",
         accent: "#4FA8D8",
         fallbackGradient: "linear-gradient(135deg, #0B2A4A, #14568C, #4FA8D8)",
     },
     {
-        match: ["forêt", "foret"],
+        match: ["jungle", "forêt", "foret"],
         image: "/images/boosters/foret.png",
         focus: "48% 40%",
         accent: "#5FBF7F",
@@ -39,6 +39,7 @@ const DEFAULT_VISUAL = {
 export function resolveBoosterVisual(name = "") {
     const normalized = name.toLowerCase();
     const found = VISUALS.find((v) => v.match.some((keyword) => normalized.includes(keyword)));
-    const { match, ...visual } = found ?? { ...DEFAULT_VISUAL };
+    const visual = { ...(found ?? DEFAULT_VISUAL) };
+    delete visual.match;
     return visual;
 }

@@ -4,10 +4,9 @@ import com.efrei.gacha.exception.BoxNotFoundException;
 import com.efrei.gacha.model.Box;
 import com.efrei.gacha.repository.BoxRepository;
 import com.efrei.gacha.service.BoxService;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class BoxServiceImpl implements BoxService {
@@ -26,7 +25,6 @@ public class BoxServiceImpl implements BoxService {
 
     @Override
     public Box getBox(Long id) {
-        return boxRepository.findById(id)
-                .orElseThrow(() -> new BoxNotFoundException(id));
+        return boxRepository.findById(id).orElseThrow(() -> new BoxNotFoundException(id));
     }
 }

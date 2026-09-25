@@ -1,10 +1,10 @@
 package com.efrei.gacha.dto;
 
+import java.util.List;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.Map;
 
 @Getter
 @NoArgsConstructor
@@ -15,5 +15,8 @@ public class StatsResponse {
     private Integer boxOpened;
     private Map<String, Integer> boxOpenedByType;
     private RarestCardResponse rarestCard;
+    private List<RarestCardResponse> rareCards;
     private Map<String, Long> cardsByRarity;
+    private Long cardsSold;
+    private Long creditsEarned;
 }

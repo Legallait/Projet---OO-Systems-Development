@@ -1,8 +1,8 @@
 import {useState} from "react";
 import {createPortal} from "react-dom";
-import {X} from "lucide-react";
+import {X, Gem} from "lucide-react";
 
-const CARD_WIDTH = "clamp(90px, calc((100vw - 80px) * 0.2), 320px)";
+export const CARD_WIDTH = "clamp(90px, calc((100vw - 80px) * 0.2), 320px)";
 const CARD_HEIGHT = "clamp(150px, calc((100vw - 80px) * 0.3125), 500px)";
 const IMAGE_HEIGHT = "clamp(65px, calc((100vw - 80px) * 0.14375), 230px)";
 
@@ -181,6 +181,45 @@ const styles = {
         lineHeight: 1.6,
         margin: 0,
     },
+    sellSection: {
+        marginTop: "20px",
+        paddingTop: "16px",
+        borderTop: "1px solid rgba(201,162,75,0.25)",
+        display: "flex",
+        flexDirection: "column",
+        gap: "10px",
+    },
+    sellInfo: {
+        fontSize: "13px",
+        color: "#9C9A93",
+        margin: 0,
+    },
+    sellActions: {
+        display: "flex",
+        gap: "10px",
+    },
+    sellButton: (variant, disabled) => ({
+        flex: 1,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "8px",
+        padding: "10px 16px",
+        borderRadius: "8px",
+        fontSize: "12px",
+        fontWeight: 700,
+        letterSpacing: "0.05em",
+        cursor: disabled ? "default" : "pointer",
+        opacity: disabled ? 0.6 : 1,
+        border: "1px solid #C9A24B",
+        backgroundColor: variant === "primary" ? "#C9A24B" : "transparent",
+        color: variant === "primary" ? "#2A1F06" : "#E8C77A",
+    }),
+    sellError: {
+        fontSize: "13px",
+        color: "#D9776B",
+        margin: 0,
+    },
     wikiLink: {
         display: "inline-block",
         marginTop: "14px",
@@ -190,9 +229,32 @@ const styles = {
     },
 };
 
-export default function AnimalCard({animal}) {
+export default function AnimalCard({animal, onSell}) {
     const [imageFailed, setImageFailed] = useState(false);
     const [expanded, setExpanded] = useState(false);
+    const [confirmingSell, setConfirmingSell] = useState(false);
+    const [isSelling, setIsSelling] = useState(false);
+    const [sellError, setSellError] = useState(null);
+
+    function closeModal() {
+        setExpanded(false);
+        setConfirmingSell(false);
+        setSellError(null);
+    }
+
+    async function handleConfirmSell() {
+        setIsSelling(true);
+        setSellError(null);
+        try {
+            const result = await onSell(animal.itemId);
+            setConfirmingSell(false);
+            if (result.remainingQuantity <= 0) setExpanded(false);
+        } catch (err) {
+            setSellError(err.message || "La vente a échoué.");
+        } finally {
+            setIsSelling(false);
+        }
+    }
 
     return (
         <>
@@ -239,7 +301,7 @@ export default function AnimalCard({animal}) {
 
             {expanded &&
                 createPortal(
-                    <div style={styles.overlay} onClick={() => setExpanded(false)}>
+                    <div style={styles.overlay} onClick={closeModal}>
                         <div
                             style={{
                                 ...styles.modal,
@@ -248,7 +310,7 @@ export default function AnimalCard({animal}) {
                             }}
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <button style={styles.closeButton} onClick={() => setExpanded(false)}>
+                            <button style={styles.closeButton} onClick={closeModal}>
                                 <X size={20} strokeWidth={1.5}/>
                             </button>
 
@@ -291,6 +353,43 @@ export default function AnimalCard({animal}) {
                                 >
                                     Lire la suite sur Wikipédia
                                 </a>
+                            )}
+
+                            {onSell && (
+                                <div style={styles.sellSection}>
+                                    <p style={styles.sellInfo}>
+                                        {confirmingSell
+                                            ? `Vendre 1 exemplaire de ${animal.name} pour ${animal.sellPrice} gemmes ?`
+                                            : `Exemplaires possédés : ${animal.quantity} · Prix de revente (${animal.statusLabel}) : ${animal.sellPrice} gemmes`}
+                                    </p>
+                                    {confirmingSell ? (
+                                        <div style={styles.sellActions}>
+                                            <button
+                                                style={styles.sellButton("secondary", isSelling)}
+                                                onClick={() => setConfirmingSell(false)}
+                                                disabled={isSelling}
+                                            >
+                                                ANNULER
+                                            </button>
+                                            <button
+                                                style={styles.sellButton("primary", isSelling)}
+                                                onClick={handleConfirmSell}
+                                                disabled={isSelling}
+                                            >
+                                                {isSelling ? "VENTE…" : "CONFIRMER"}
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            style={styles.sellButton("primary", false)}
+                                            onClick={() => setConfirmingSell(true)}
+                                        >
+                                            VENDRE · {animal.sellPrice}
+                                            <Gem size={14} strokeWidth={1.8}/>
+                                        </button>
+                                    )}
+                                    {sellError && <p style={styles.sellError}>{sellError}</p>}
+                                </div>
                             )}
                         </div>
                     </div>,

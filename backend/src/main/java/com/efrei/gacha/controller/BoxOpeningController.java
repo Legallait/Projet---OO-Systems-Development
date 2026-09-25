@@ -6,13 +6,12 @@ import com.efrei.gacha.exception.EmptyBoxException;
 import com.efrei.gacha.exception.InsufficientCreditsException;
 import com.efrei.gacha.exception.PlayerNotFoundException;
 import com.efrei.gacha.service.BoxOpeningService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/players/{playerId}/boxes/{boxId}/openings")

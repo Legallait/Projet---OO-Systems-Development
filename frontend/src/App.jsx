@@ -8,6 +8,7 @@ import Stats from "./pages/Stats";
 import BoosterOpening from "./pages/BoosterOpening.jsx";
 import Login from "./pages/Login.jsx";
 import LoadingOverlay from "./components/LoadingOverlay";
+import BackendGate from "./components/BackendGate";
 import { subscribeLoading } from "./services/apiClient";
 
 const styles = {
@@ -23,21 +24,23 @@ export default function App() {
     }, []);
 
     return (
-        <BrowserRouter>
-            <div style={styles.appWrapper}>
-                <NavBar/>
-                <div style={styles.content}>
-                    <Routes>
-                        <Route path="/" element={<Home/>}/>
-                        <Route path="/collection" element={<Collection/>}/>
-                        <Route path="/history" element={<History/>}/>
-                        <Route path="/stats" element={<Stats/>}/>
-                        <Route path="/boosters/:boxId/open" element={<BoosterOpening/>}/>
-                        <Route path="/login" element={<Login/>}/>
-                    </Routes>
+        <BackendGate>
+            <BrowserRouter>
+                <div style={styles.appWrapper}>
+                    <NavBar/>
+                    <div style={styles.content}>
+                        <Routes>
+                            <Route path="/" element={<Home/>}/>
+                            <Route path="/collection" element={<Collection/>}/>
+                            <Route path="/history" element={<History/>}/>
+                            <Route path="/stats" element={<Stats/>}/>
+                            <Route path="/boosters/:boxId/open" element={<BoosterOpening/>}/>
+                            <Route path="/login" element={<Login/>}/>
+                        </Routes>
+                    </div>
+                    {isLoading && <LoadingOverlay />}
                 </div>
-                {isLoading && <LoadingOverlay />}
-            </div>
-        </BrowserRouter>
+            </BrowserRouter>
+        </BackendGate>
     );
 }

@@ -1,17 +1,32 @@
-import { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Gem } from "lucide-react";
-import { getCurrentPlayer, logout, subscribePlayer } from "../services/AuthService";
+import {useEffect, useState} from "react";
+import {Link, useLocation, useNavigate} from "react-router-dom";
+import {Gem, Menu, X} from "lucide-react";
+import {getCurrentPlayer, logout, subscribePlayer} from "../services/AuthService";
 
 const NAV_LINKS = [
-    { label: "Accueil", path: "/" },
-    { label: "Collection", path: "/Collection" },
-    { label: "Historique", path: "/History" },
-    { label: "Stats", path: "/Stats" },
+    {label: "Accueil", path: "/"},
+    {label: "Collection", path: "/Collection"},
+    {label: "Historique", path: "/History"},
+    {label: "Stats", path: "/Stats"},
 ];
+
+const RESPONSIVE_CSS = `
+.navbar-burger, .navbar-mobile-menu { display: none !important; }
+@media (max-width: 820px) {
+  .navbar { padding: 0 16px !important; }
+  .navbar-links, .navbar-auth { display: none !important; }
+  .navbar-burger { display: flex !important; }
+  .navbar-mobile-menu.is-open { display: flex !important; }
+}
+@media (max-width: 420px) {
+  .navbar-logo-text { display: none; }
+  .navbar-gems-label { display: none; }
+}
+`;
 
 const styles = {
     nav: {
+        position: "relative",
         backgroundColor: "#0B0C10",
         borderBottom: "1px solid #24262E",
         fontFamily: "'Georgia', 'Cormorant Garamond', serif",
@@ -42,6 +57,49 @@ const styles = {
         color: "#E8C77A",
         fontSize: "20px",
         letterSpacing: "0.02em",
+        whiteSpace: "nowrap",
+    },
+    burger: {
+        alignItems: "center",
+        justifyContent: "center",
+        width: "40px",
+        height: "40px",
+        borderRadius: "8px",
+        border: "1px solid #24262E",
+        backgroundColor: "#14151B",
+        color: "#E8C77A",
+        cursor: "pointer",
+        flexShrink: 0,
+    },
+    mobileMenu: {
+        position: "absolute",
+        top: "72px",
+        left: 0,
+        right: 0,
+        zIndex: 900,
+        flexDirection: "column",
+        backgroundColor: "#0B0C10",
+        borderBottom: "1px solid #24262E",
+        boxShadow: "0 12px 24px rgba(0,0,0,0.5)",
+        padding: "8px 16px 16px",
+        fontFamily: "'Inter', sans-serif",
+    },
+    mobileLink: (isActive) => ({
+        textDecoration: "none",
+        fontSize: "15px",
+        fontWeight: 500,
+        padding: "14px 12px",
+        borderRadius: "8px",
+        color: isActive ? "#E8C77A" : "#C7C5BE",
+        backgroundColor: isActive ? "#1A1710" : "transparent",
+        borderLeft: isActive ? "2px solid #E8C77A" : "2px solid transparent",
+    }),
+    mobileAuth: {
+        marginTop: "8px",
+        paddingTop: "14px",
+        borderTop: "1px solid #24262E",
+        textAlign: "left",
+        padding: "14px 12px 0",
     },
     navList: {
         display: "flex",
@@ -106,28 +164,34 @@ export default function Navbar() {
     const location = useLocation();
     const navigate = useNavigate();
     const [player, setPlayer] = useState(getCurrentPlayer);
+    // The menu is tied to the path it was opened on, so it closes by itself after navigating.
+    const [menuOpenOn, setMenuOpenOn] = useState(null);
+    const isMenuOpen = menuOpenOn === location.pathname;
 
     useEffect(() => subscribePlayer(() => setPlayer(getCurrentPlayer())), []);
 
     const gems = player ? player.credits : 0;
 
     const handleLogout = () => {
+        setMenuOpenOn(null);
         logout();
         navigate("/login");
     };
 
     return (
-        <nav style={styles.nav}>
+        <nav className="navbar" style={styles.nav}>
+            <style>{RESPONSIVE_CSS}</style>
+
             {/* Logo */}
             <Link to="/" style={styles.logoWrapper}>
-                <img src="/logo.png" alt="One More Time" style={styles.logoImage} />
-                <span style={styles.logoText}>One More Time</span>
+                <img src="/logo.png" alt="One More Time" style={styles.logoImage}/>
+                <span className="navbar-logo-text" style={styles.logoText}>One More Time</span>
             </Link>
 
             {/* Nav links */}
-            <ul style={styles.navList}>
+            <ul className="navbar-links" style={styles.navList}>
                 {NAV_LINKS.map((link) => {
-                    const isActive = location.pathname === link.path;
+                    const isActive = location.pathname.toLowerCase() === link.path.toLowerCase();
                     return (
                         <li key={link.path}>
                             <Link to={link.path} style={styles.navLink(isActive)}>
@@ -141,17 +205,59 @@ export default function Navbar() {
             <div style={styles.rightWrapper}>
                 {/* Gems counter */}
                 <div style={styles.gemsWrapper}>
-                    <Gem size={16} style={styles.gemsIcon} strokeWidth={1.5} />
+                    <Gem size={16} style={styles.gemsIcon} strokeWidth={1.5}/>
                     <span style={styles.gemsAmount}>{gems.toLocaleString("fr-FR")}</span>
-                    <span style={styles.gemsLabel}>GEMS</span>
+                    <span className="navbar-gems-label" style={styles.gemsLabel}>GEMS</span>
                 </div>
 
+                <div className="navbar-auth">
+                    {player ? (
+                        <button style={styles.authLink} onClick={handleLogout}>
+                            Déconnexion
+                        </button>
+                    ) : (
+                        <Link to="/login" style={styles.authLink}>
+                            Connexion
+                        </Link>
+                    )}
+                </div>
+
+                {/* Burger (mobile only) */}
+                <button
+                    className="navbar-burger"
+                    style={styles.burger}
+                    onClick={() => setMenuOpenOn(isMenuOpen ? null : location.pathname)}
+                    aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+                    aria-expanded={isMenuOpen}
+                >
+                    {isMenuOpen ? <X size={20} strokeWidth={1.5}/> : <Menu size={20} strokeWidth={1.5}/>}
+                </button>
+            </div>
+
+            {/* Mobile menu */}
+            <div
+                className={`navbar-mobile-menu${isMenuOpen ? " is-open" : ""}`}
+                style={styles.mobileMenu}
+            >
+                {NAV_LINKS.map((link) => {
+                    const isActive = location.pathname.toLowerCase() === link.path.toLowerCase();
+                    return (
+                        <Link
+                            key={link.path}
+                            to={link.path}
+                            style={styles.mobileLink(isActive)}
+                            onClick={() => setMenuOpenOn(null)}
+                        >
+                            {link.label}
+                        </Link>
+                    );
+                })}
                 {player ? (
-                    <button style={styles.authLink} onClick={handleLogout}>
+                    <button style={{...styles.authLink, ...styles.mobileAuth}} onClick={handleLogout}>
                         Déconnexion
                     </button>
                 ) : (
-                    <Link to="/login" style={styles.authLink}>
+                    <Link to="/login" style={{...styles.authLink, ...styles.mobileAuth}}>
                         Connexion
                     </Link>
                 )}

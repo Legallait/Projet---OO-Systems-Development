@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Gem } from "lucide-react";
+import {useState} from "react";
+import {useNavigate} from "react-router-dom";
+import {Gem} from "lucide-react";
 
 const HOVER_CSS = `
 .booster-card { transition: transform 220ms ease, box-shadow 220ms ease; }
@@ -17,6 +17,8 @@ const styles = {
         padding: "12px",
         width: "100%",
         maxWidth: "320px",
+        height: "100%",
+        boxSizing: "border-box",
         margin: "0 auto",
         display: "flex",
         flexDirection: "column",
@@ -52,6 +54,11 @@ const styles = {
         color: "#E8C77A",
         margin: "0 0 12px",
         textAlign: "center",
+        lineHeight: 1.3,
+        minHeight: "2.6em",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
     },
     priceRow: {
         display: "flex",
@@ -68,6 +75,7 @@ const styles = {
         color: "#E8C77A",
     },
     button: {
+        marginTop: "auto",
         width: "100%",
         border: "none",
         borderRadius: "6px",
@@ -81,7 +89,7 @@ const styles = {
     },
 };
 
-export default function BoosterCard({ booster }) {
+export default function BoosterCard({booster}) {
     const [imageFailed, setImageFailed] = useState(false);
     const navigate = useNavigate();
 
@@ -94,26 +102,26 @@ export default function BoosterCard({ booster }) {
             }}
         >
             <style>{HOVER_CSS}</style>
-            <div style={{ ...styles.imageWrapper, background: booster.fallbackGradient }}>
+            <div style={{...styles.imageWrapper, background: booster.fallbackGradient}}>
                 {!imageFailed && booster.image && (
                     <img
                         className="booster-card-image"
                         src={booster.image}
                         alt={booster.name}
-                        style={{ ...styles.image, objectPosition: booster.focus }}
+                        style={{...styles.image, objectPosition: booster.focus}}
                         onError={() => setImageFailed(true)}
                     />
                 )}
-                <div style={styles.imageShade} />
+                <div style={styles.imageShade}/>
             </div>
             <h3 style={styles.boosterName}>{booster.name}</h3>
             <div style={styles.priceRow}>
                 <span style={styles.price}>{booster.price}</span>
-                <Gem size={14} style={styles.priceIcon} strokeWidth={1.5} />
+                <Gem size={14} style={styles.priceIcon} strokeWidth={1.5}/>
             </div>
             <button
                 style={styles.button}
-                onClick={() => navigate(`/boosters/${booster.id}/open`, { state: { booster } })}
+                onClick={() => navigate(`/boosters/${booster.id}/open`, {state: {booster}})}
             >
                 OUVRIR LE BOOSTER
             </button>

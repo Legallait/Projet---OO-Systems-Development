@@ -18,15 +18,14 @@ import com.efrei.gacha.repository.PlayerRepository;
 import com.efrei.gacha.repository.PullHistoryRepository;
 import com.efrei.gacha.service.BoxOpeningService;
 import com.efrei.gacha.service.StatsService;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 public class BoxOpeningServiceImpl implements BoxOpeningService {
@@ -42,12 +41,13 @@ public class BoxOpeningServiceImpl implements BoxOpeningService {
     private final StatsService statsService;
 
     @Autowired
-    public BoxOpeningServiceImpl(PlayerRepository playerRepository,
-                                 BoxRepository boxRepository,
-                                 BoxItemRepository boxItemRepository,
-                                 InventoryItemRepository inventoryItemRepository,
-                                 PullHistoryRepository pullHistoryRepository,
-                                 StatsService statsService) {
+    public BoxOpeningServiceImpl(
+            PlayerRepository playerRepository,
+            BoxRepository boxRepository,
+            BoxItemRepository boxItemRepository,
+            InventoryItemRepository inventoryItemRepository,
+            PullHistoryRepository pullHistoryRepository,
+            StatsService statsService) {
         this.playerRepository = playerRepository;
         this.boxRepository = boxRepository;
         this.boxItemRepository = boxItemRepository;
@@ -59,10 +59,8 @@ public class BoxOpeningServiceImpl implements BoxOpeningService {
     @Override
     @Transactional
     public List<PullResultResponse> openBox(Long playerId, Long boxId) {
-        Player player = playerRepository.findById(playerId)
-                .orElseThrow(() -> new PlayerNotFoundException(playerId));
-        Box box = boxRepository.findById(boxId)
-                .orElseThrow(() -> new BoxNotFoundException(boxId));
+        Player player = playerRepository.findById(playerId).orElseThrow(() -> new PlayerNotFoundException(playerId));
+        Box box = boxRepository.findById(boxId).orElseThrow(() -> new BoxNotFoundException(boxId));
 
         if (player.getCredits() < box.getPrice()) {
             throw new InsufficientCreditsException(playerId);
@@ -106,8 +104,7 @@ public class BoxOpeningServiceImpl implements BoxOpeningService {
                     drawnItem.getRarity().getName(),
                     drawnItem.getRarity().getColorHex(),
                     drawnItem.getSellPrice(),
-                    player.getCredits()
-            ));
+                    player.getCredits()));
 
             log.info("Player {} opened box {} and got item {}", playerId, boxId, drawnItem.getId());
         }

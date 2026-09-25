@@ -9,6 +9,4 @@ public record INaturalistTaxon(
         String name,
         @JsonProperty("preferred_common_name") String preferredCommonName,
         @JsonProperty("wikipedia_url") String wikipediaUrl,
-        @JsonProperty("default_photo") INaturalistPhoto defaultPhoto
-) {
-}
+        @JsonProperty("default_photo") INaturalistPhoto defaultPhoto) {}

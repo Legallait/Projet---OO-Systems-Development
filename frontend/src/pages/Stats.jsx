@@ -5,6 +5,26 @@ import TotalTiragesCard from "../components/TotalTiragesCard";
 import StatusDonutCard from "../components/StatusDonutCard";
 import RarestSpeciesCard from "../components/RarestSpeciesCard";
 import TopBoostersCard from "../components/TopBoostersCard";
+import SalesCard from "../components/SalesCard";
+
+const RESPONSIVE_CSS = `
+@media (max-width: 1100px) {
+  .stats-page { height: auto !important; min-height: 100%; }
+  .stats-grid {
+    grid-template-columns: 1fr 1fr !important;
+    grid-template-rows: auto !important;
+  }
+  .stats-cell { grid-column: span 1 !important; min-height: 260px; }
+  .stats-cell-wide { grid-column: 1 / -1 !important; }
+}
+@media (max-width: 640px) {
+  .stats-page { padding: 28px 16px !important; }
+  .stats-title { font-size: 24px !important; }
+  .stats-subtitle { margin-bottom: 24px !important; }
+  .stats-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
+  .stats-cell { min-height: 0; }
+}
+`;
 
 const styles = {
   page: {
@@ -30,12 +50,17 @@ const styles = {
   },
   grid: {
     display: "grid",
-    gridTemplateColumns: "1fr 1fr",
+    gridTemplateColumns: "repeat(6, 1fr)",
     gridTemplateRows: "1fr 1fr",
     gap: "24px",
     flex: 1,
     minHeight: 0,
   },
+  cell: (span) => ({
+    gridColumn: `span ${span}`,
+    minWidth: 0,
+    minHeight: 0,
+  }),
   state: {
     color: "#9C9A93",
     fontSize: "14px",
@@ -61,37 +86,33 @@ function mapBoosterColor(index) {
 export default function Stats() {
   // même pattern que Navbar.jsx
   const [player, setPlayer] = useState(getCurrentPlayer);
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // Result of the last request, tagged with the player it belongs to:
+  // loading is derived from it instead of being set inside the effect.
+  const [result, setResult] = useState({ playerId: null, stats: null, error: null });
 
   useEffect(() => subscribePlayer(() => setPlayer(getCurrentPlayer())), []);
 
   useEffect(() => {
-    if (!player?.id) {
-      setLoading(false);
-      return;
-    }
+    if (!player?.id) return;
 
     let cancelled = false;
-    setLoading(true);
-    setError(null);
-
     StatsService.getStats(player.id)
       .then((data) => {
-        if (!cancelled) setStats(data);
+        if (!cancelled) setResult({ playerId: player.id, stats: data, error: null });
       })
       .catch((err) => {
-        if (!cancelled) setError(err);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) setResult({ playerId: player.id, stats: null, error: err });
       });
 
     return () => {
       cancelled = true;
     };
   }, [player?.id]);
+
+  const isCurrent = result.playerId === player?.id;
+  const stats = isCurrent ? result.stats : null;
+  const error = isCurrent ? result.error : null;
+  const loading = Boolean(player?.id) && !isCurrent;
 
   const rarityData = stats
     ? Object.entries(stats.cardsByRarity).map(([label, value], i) => ({
@@ -110,9 +131,10 @@ export default function Stats() {
     : [];
 
   return (
-    <div style={styles.page}>
-      <h1 style={styles.title}>Tableau de Bord &amp; Statistiques</h1>
-      <p style={styles.subtitle}>
+    <div className="stats-page" style={styles.page}>
+      <style>{RESPONSIVE_CSS}</style>
+      <h1 className="stats-title" style={styles.title}>Tableau de Bord &amp; Statistiques</h1>
+      <p className="stats-subtitle" style={styles.subtitle}>
         Analysez vos performances de collection, vos tirages et visualisez la
         rareté de vos espèces.
       </p>
@@ -132,15 +154,29 @@ export default function Stats() {
       )}
 
       {stats && (
-        <div style={styles.grid}>
-          <TotalTiragesCard total={stats.boxOpened} />
-          <StatusDonutCard
-            title="RÉPARTITION PAR RARETÉ"
-            emptyLabel="CARTES"
-            data={rarityData}
-          />
-          <RarestSpeciesCard species={stats.rarestCard} />
-          <TopBoostersCard boosters={boosterData} />
+        <div className="stats-grid" style={styles.grid}>
+          <div className="stats-cell" style={styles.cell(2)}>
+            <TotalTiragesCard total={stats.boxOpened} />
+          </div>
+          <div className="stats-cell" style={styles.cell(2)}>
+            <SalesCard
+              creditsEarned={stats.creditsEarned ?? 0}
+              cardsSold={stats.cardsSold ?? 0}
+            />
+          </div>
+          <div className="stats-cell stats-cell-wide" style={styles.cell(2)}>
+            <RarestSpeciesCard cards={stats.rareCards ?? []} />
+          </div>
+          <div className="stats-cell" style={styles.cell(3)}>
+            <StatusDonutCard
+              title="RÉPARTITION PAR RARETÉ"
+              emptyLabel="CARTES"
+              data={rarityData}
+            />
+          </div>
+          <div className="stats-cell" style={styles.cell(3)}>
+            <TopBoostersCard boosters={boosterData} />
+          </div>
         </div>
       )}
     </div>

@@ -13,4 +13,6 @@ public class RarestCardResponse {
     private String itemName;
     private String rarityName;
     private String rarityColorHex;
+    private String itemImageUrl;
+    private Integer quantity;
 }

@@ -19,6 +19,18 @@ function resolveAssetUrl(path) {
     return `${API_URL}${path}`;
 }
 
+// Plain fetch, outside the loading counter: used to poll while the backend boots and seeds its data.
+async function checkBackendReady() {
+    try {
+        const res = await fetch(`${API_URL}/status`);
+        if (!res.ok) return false;
+        const body = await res.json();
+        return body.ready === true;
+    } catch {
+        return false;
+    }
+}
+
 async function apiFetch(path, options = {}) {
     activeRequests += 1;
     notify();
@@ -38,5 +50,5 @@ async function apiFetch(path, options = {}) {
     }
 }
 
-export { resolveAssetUrl, subscribeLoading };
+export { resolveAssetUrl, subscribeLoading, checkBackendReady };
 export default apiFetch;

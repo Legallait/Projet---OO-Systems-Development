@@ -14,13 +14,12 @@ import com.efrei.gacha.repository.InventoryItemRepository;
 import com.efrei.gacha.repository.PlayerRepository;
 import com.efrei.gacha.repository.PullHistoryRepository;
 import com.efrei.gacha.service.PlayerService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PlayerServiceImpl implements PlayerService {
@@ -32,9 +31,10 @@ public class PlayerServiceImpl implements PlayerService {
     private final PullHistoryRepository pullHistoryRepository;
 
     @Autowired
-    public PlayerServiceImpl(PlayerRepository playerRepository,
-                             InventoryItemRepository inventoryItemRepository,
-                             PullHistoryRepository pullHistoryRepository) {
+    public PlayerServiceImpl(
+            PlayerRepository playerRepository,
+            InventoryItemRepository inventoryItemRepository,
+            PullHistoryRepository pullHistoryRepository) {
         this.playerRepository = playerRepository;
         this.inventoryItemRepository = inventoryItemRepository;
         this.pullHistoryRepository = pullHistoryRepository;
@@ -56,8 +56,7 @@ public class PlayerServiceImpl implements PlayerService {
 
     @Override
     public Player login(String username, String password) {
-        Player player = playerRepository.findByUsername(username)
-                .orElseThrow(InvalidCredentialsException::new);
+        Player player = playerRepository.findByUsername(username).orElseThrow(InvalidCredentialsException::new);
         if (!Objects.equals(player.getPassword(), password)) {
             throw new InvalidCredentialsException();
         }
@@ -66,8 +65,7 @@ public class PlayerServiceImpl implements PlayerService {
 
     @Override
     public Player getPlayer(Long id) {
-        return playerRepository.findById(id)
-                .orElseThrow(() -> new PlayerNotFoundException(id));
+        return playerRepository.findById(id).orElseThrow(() -> new PlayerNotFoundException(id));
     }
 
     @Override
@@ -79,11 +77,13 @@ public class PlayerServiceImpl implements PlayerService {
                 .map(inv -> new InventoryItemResponse(
                         inv.getItem().getId(),
                         inv.getItem().getName(),
+                        inv.getItem().getImageUrl(),
+                        inv.getItem().getDescription(),
+                        inv.getItem().getWikipediaUrl(),
                         inv.getItem().getRarity().getName(),
                         inv.getItem().getRarity().getColorHex(),
                         inv.getItem().getSellPrice(),
-                        inv.getQuantity()
-                ))
+                        inv.getQuantity()))
                 .toList();
     }
 
@@ -94,24 +94,26 @@ public class PlayerServiceImpl implements PlayerService {
         }
         return pullHistoryRepository.findByPlayerIdOrderByPulledAtDesc(playerId).stream()
                 .map(pull -> new PullHistoryResponse(
+                        pull.getId(),
                         pull.getItem().getId(),
                         pull.getBox().getName(),
                         pull.getItem().getName(),
                         pull.getItem().getRarity().getName(),
                         pull.getItem().getSellPrice(),
                         pull.getSold(),
-                        pull.getPulledAt()
-                ))
+                        pull.getPulledAt(),
+                        pull.getSoldPrice(),
+                        pull.getSoldAt()))
                 .toList();
     }
 
     @Override
     @Transactional
     public SellItemResponse sellItem(Long playerId, Long itemId) {
-        Player player = playerRepository.findById(playerId)
-                .orElseThrow(() -> new PlayerNotFoundException(playerId));
+        Player player = playerRepository.findById(playerId).orElseThrow(() -> new PlayerNotFoundException(playerId));
 
-        InventoryItem inventoryItem = inventoryItemRepository.findByPlayerIdAndItemId(playerId, itemId)
+        InventoryItem inventoryItem = inventoryItemRepository
+                .findByPlayerIdAndItemId(playerId, itemId)
                 .filter(inv -> inv.getQuantity() > 0)
                 .orElseThrow(() -> new ItemNotInInventoryException(playerId, itemId));
 
@@ -129,9 +131,12 @@ public class PlayerServiceImpl implements PlayerService {
             inventoryItemRepository.save(inventoryItem);
         }
 
-        pullHistoryRepository.findFirstByPlayerIdAndItemIdAndSoldFalse(playerId, itemId)
+        pullHistoryRepository
+                .findFirstByPlayerIdAndItemIdAndSoldFalse(playerId, itemId)
                 .ifPresent(pull -> {
                     pull.setSold(true);
+                    pull.setSoldAt(LocalDateTime.now());
+                    pull.setSoldPrice(sellPrice);
                     pullHistoryRepository.save(pull);
                 });
 

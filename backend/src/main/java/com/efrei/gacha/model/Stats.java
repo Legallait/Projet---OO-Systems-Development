@@ -1,10 +1,9 @@
 package com.efrei.gacha.model;
 
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.util.HashMap;
 import java.util.Map;
+import lombok.*;
 
 @Entity
 @Table(name = "stats")
@@ -27,10 +26,7 @@ public class Stats {
     private Integer boxOpened = 0;
 
     @ElementCollection
-    @CollectionTable(
-            name = "stats_box_opened_by_type",
-            joinColumns = @JoinColumn(name = "stats_id")
-    )
+    @CollectionTable(name = "stats_box_opened_by_type", joinColumns = @JoinColumn(name = "stats_id"))
     @MapKeyColumn(name = "box_type")
     @Column(name = "count")
     @Builder.Default

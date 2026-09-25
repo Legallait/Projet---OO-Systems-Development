@@ -9,5 +9,4 @@ public record PullResultResponse(
         String rarityName,
         String rarityColorHex,
         Integer sellPrice,
-        Integer remainingCredits
-) {}
+        Integer remainingCredits) {}

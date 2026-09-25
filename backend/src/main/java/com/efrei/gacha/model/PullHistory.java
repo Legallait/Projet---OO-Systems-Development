@@ -1,13 +1,12 @@
 package com.efrei.gacha.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "pull_history")
@@ -38,4 +37,8 @@ public class PullHistory {
 
     @Builder.Default
     private Boolean sold = false;
+
+    private LocalDateTime soldAt;
+
+    private Integer soldPrice;
 }

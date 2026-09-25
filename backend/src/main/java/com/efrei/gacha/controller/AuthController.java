@@ -6,12 +6,11 @@ import com.efrei.gacha.exception.InvalidCredentialsException;
 import com.efrei.gacha.exception.UsernameAlreadyExistsException;
 import com.efrei.gacha.model.Player;
 import com.efrei.gacha.service.PlayerService;
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
