@@ -4,10 +4,10 @@ import historyService from "../services/HistoryService.js";
 import { getCurrentPlayer } from "../services/AuthService";
 
 const RARITIES = [
-  { id: 1, colorHex: "#B0B0B0", dropRate: 60.0, name: "Commun" },
-  { id: 2, colorHex: "#3B82F6", dropRate: 28.0, name: "Rare" },
-  { id: 3, colorHex: "#A855F7", dropRate: 10.0, name: "Épique" },
-  { id: 4, colorHex: "#F59E0B", dropRate: 2.0, name: "Légendaire" },
+  { colorHex: "#B0B0B0", name: "Commun" },
+  { colorHex: "#3B82F6", name: "Rare" },
+  { colorHex: "#A855F7", name: "Épique" },
+  { colorHex: "#F59E0B", name: "Légendaire" },
 ];
 
 function getRarityColor(rarityName) {

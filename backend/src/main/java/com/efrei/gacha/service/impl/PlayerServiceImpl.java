@@ -1,6 +1,7 @@
 package com.efrei.gacha.service.impl;
 
 import com.efrei.gacha.dto.InventoryItemResponse;
+import com.efrei.gacha.dto.PlayerResponse;
 import com.efrei.gacha.dto.PullHistoryResponse;
 import com.efrei.gacha.dto.SellItemResponse;
 import com.efrei.gacha.exception.InvalidCredentialsException;
@@ -17,6 +18,8 @@ import com.efrei.gacha.service.PlayerService;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class PlayerServiceImpl implements PlayerService {
 
+    private static final Logger log = LoggerFactory.getLogger(PlayerServiceImpl.class);
     private static final int STARTING_CREDITS = 2500;
 
     private final PlayerRepository playerRepository;
@@ -41,8 +45,9 @@ public class PlayerServiceImpl implements PlayerService {
     }
 
     @Override
-    public Player createPlayer(String username, String password) {
+    public PlayerResponse createPlayer(String username, String password) {
         if (playerRepository.findByUsername(username).isPresent()) {
+            log.warn("Registration refused: username '{}' already taken", username);
             throw new UsernameAlreadyExistsException(username);
         }
         Player player = Player.builder()
@@ -51,21 +56,28 @@ public class PlayerServiceImpl implements PlayerService {
                 .credits(STARTING_CREDITS)
                 .createdAt(LocalDateTime.now())
                 .build();
-        return playerRepository.save(player);
+        Player saved = playerRepository.save(player);
+        log.info("Player {} registered as '{}' with {} credits", saved.getId(), username, STARTING_CREDITS);
+        return PlayerResponse.from(saved);
     }
 
     @Override
-    public Player login(String username, String password) {
-        Player player = playerRepository.findByUsername(username).orElseThrow(InvalidCredentialsException::new);
-        if (!Objects.equals(player.getPassword(), password)) {
+    public PlayerResponse login(String username, String password) {
+        Player player = playerRepository.findByUsername(username).orElse(null);
+        if (player == null || !Objects.equals(player.getPassword(), password)) {
+            log.warn("Failed login attempt for username '{}'", username);
             throw new InvalidCredentialsException();
         }
-        return player;
+        log.info("Player {} ('{}') logged in", player.getId(), username);
+        return PlayerResponse.from(player);
     }
 
     @Override
-    public Player getPlayer(Long id) {
-        return playerRepository.findById(id).orElseThrow(() -> new PlayerNotFoundException(id));
+    public PlayerResponse getPlayer(Long id) {
+        return playerRepository
+                .findById(id)
+                .map(PlayerResponse::from)
+                .orElseThrow(() -> new PlayerNotFoundException(id));
     }
 
     @Override
@@ -140,6 +152,14 @@ public class PlayerServiceImpl implements PlayerService {
                     pullHistoryRepository.save(pull);
                 });
 
+        log.info(
+                "Player {} sold item {} ('{}') for {} credits, {} left, balance {}",
+                playerId,
+                itemId,
+                item.getName(),
+                sellPrice,
+                Math.max(remainingQuantity, 0),
+                player.getCredits());
         return new SellItemResponse(itemId, sellPrice, player.getCredits(), Math.max(remainingQuantity, 0));
     }
 }

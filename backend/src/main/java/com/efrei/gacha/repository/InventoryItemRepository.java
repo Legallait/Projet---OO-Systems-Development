@@ -10,7 +10,4 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, Lo
     List<InventoryItem> findByPlayerId(Long playerId);
 
     Optional<InventoryItem> findByPlayerIdAndItemId(Long playerId, Long itemId);
-
-    Optional<InventoryItem> findFirstByPlayerIdAndQuantityGreaterThanOrderByItemRarityDropRateAsc(
-            Long playerId, Integer quantity);
 }

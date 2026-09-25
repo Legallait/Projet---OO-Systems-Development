@@ -1,11 +1,11 @@
 package com.efrei.gacha.service;
 
-import com.efrei.gacha.model.Box;
+import com.efrei.gacha.dto.BoxResponse;
 import java.util.List;
 
 public interface BoxService {
 
-    List<Box> getAllBoxes();
+    List<BoxResponse> getAllBoxes();
 
-    Box getBox(Long id);
+    BoxResponse getBox(Long id);
 }

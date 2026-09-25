@@ -8,6 +8,4 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface BoxItemRepository extends JpaRepository<BoxItem, BoxItemId> {
 
     List<BoxItem> findById_BoxId(Long boxId);
-
-    List<BoxItem> findById_ItemId(Long itemId);
 }

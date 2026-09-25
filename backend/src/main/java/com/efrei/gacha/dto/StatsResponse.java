@@ -14,7 +14,6 @@ public class StatsResponse {
     private Long playerId;
     private Integer boxOpened;
     private Map<String, Integer> boxOpenedByType;
-    private RarestCardResponse rarestCard;
     private List<RarestCardResponse> rareCards;
     private Map<String, Long> cardsByRarity;
     private Long cardsSold;

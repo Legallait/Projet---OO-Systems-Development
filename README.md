@@ -106,6 +106,8 @@ L'API est disponible sur **http://localhost:8080**.
 > **Premier démarrage.** Si la base est vide, le backend interroge iNaturalist pour créer les raretés, les 4 coffres et leurs espèces, puis télécharge les photos dans `backend/data/species-images/`. Cela peut prendre quelques minutes. Pendant ce temps, `GET /status` renvoie `{ "ready": false }` et le frontend affiche un écran « Démarrage du serveur… ». Aux démarrages suivants, les données existantes sont réutilisées.
 >
 > Pour repartir de zéro, arrêtez le backend et supprimez le dossier `backend/data/`.
+>
+> Pour inspecter la base pendant le développement, la console H2 est disponible sur **http://localhost:8080/h2-console** (JDBC URL : `jdbc:h2:file:./data/gachadb;AUTO_SERVER=TRUE`, utilisateur `sa`, sans mot de passe).
 
 ### 2. Frontend
 
@@ -179,13 +181,13 @@ Pour tout arrêter, faites `Ctrl + C` dans chaque terminal.
 .
 ├── backend/                         API REST Spring Boot
 │   └── src/main/java/com/efrei/gacha/
-│       ├── controller/              Endpoints HTTP et gestion des erreurs
+│       ├── controller/              Endpoints HTTP (aucune logique métier)
 │       ├── service/                 Interfaces métier
 │       │   └── impl/                Implémentations (tirage, joueurs, coffres, stats)
 │       ├── repository/              Accès aux données (Spring Data JPA)
 │       ├── model/                   Entités JPA (Player, Box, Item, Rarity, ...)
-│       ├── dto/                     Objets de requête / réponse
-│       ├── exception/               Exceptions métier
+│       ├── dto/                     Objets de requête / réponse (l'API n'expose jamais d'entité JPA)
+│       ├── exception/               Exceptions métier + GlobalExceptionHandler
 │       ├── integration/             Client iNaturalist et ses DTO
 │       ├── storage/                 Stockage local des photos d'espèces
 │       ├── seed/                    Remplissage initial de la base
@@ -201,7 +203,9 @@ Pour tout arrêter, faites `Ctrl + C` dans chaque terminal.
 
 ## Backend
 
-Le backend suit une **architecture en couches** (controller → service → repository → model) avec **inversion de contrôle** via Spring (injection par constructeur), des **exceptions métier** converties en réponses HTTP par les `@ExceptionHandler` des contrôleurs, et un **logging SLF4J**.
+Le backend suit une **architecture en couches** (controller → service → repository → model) avec **inversion de contrôle** via Spring (injection par constructeur), des **exceptions métier** converties en réponses HTTP par un gestionnaire global (`GlobalExceptionHandler`, `@RestControllerAdvice`), et un **logging SLF4J**.
+
+Les contrôleurs ne font que déléguer aux services, qui renvoient des **DTO** (`PlayerResponse`, `BoxResponse`, `InventoryItemResponse`…) : les entités JPA ne sortent jamais de la couche service.
 
 ### Modèle de données
 
@@ -267,7 +271,6 @@ Base URL : `http://localhost:8080`. Les corps de requête et de réponse sont en
 
 | Méthode | Route | Description | Codes |
 |---|---|---|---|
-| `POST` | `/players` | Crée un joueur (`username`, `password`) | `201`, `409` |
 | `GET` | `/players/{playerId}` | Profil et solde | `200`, `404` |
 | `GET` | `/players/{playerId}/inventory` | Collection du joueur | `200`, `404` |
 | `POST` | `/players/{playerId}/inventory/{itemId}/sell` | Revend **un** exemplaire au prix de sa rareté | `200`, `404` joueur ou espèce non possédée |
@@ -327,7 +330,6 @@ Base URL : `http://localhost:8080`. Les corps de requête et de réponse sont en
   "playerId": 1,
   "boxOpened": 6,
   "boxOpenedByType": { "Coffre Banquise Grand Blanc": 4, "Coffre Savane Soleil Rouge": 2 },
-  "rarestCard": { "itemId": 57, "itemName": "Steppe Eagle", "rarityName": "Épique", "rarityColorHex": "#A855F7", "itemImageUrl": "/species-images/5086.jpeg", "quantity": 1 },
   "rareCards": [
     { "itemId": 57, "itemName": "Steppe Eagle", "rarityName": "Épique", "rarityColorHex": "#A855F7", "itemImageUrl": "/species-images/5086.jpeg", "quantity": 1 }
   ],
@@ -386,11 +388,7 @@ Application React (Vite) sans librairie de state management : chaque page charge
 | `StatsService` | Tableau de bord. |
 | `boosterVisuals` | Associe à chaque coffre son image, sa couleur d'accent et son dégradé de secours. |
 
-### Style
-
-Les styles sont écrits en objets JS inline, avec un petit bloc `<style>` par composant pour les media queries (`@media (max-width: 820px)` et `640px`). Palette : fond `#0B0C10`, cartes `#14151B`, accent doré `#C9A24B` / `#E8C77A`, titres en serif (Georgia).
-
-## Limites connues
+### Limites connues
 
 Ce projet est un travail de cours, pas un produit fini :
 

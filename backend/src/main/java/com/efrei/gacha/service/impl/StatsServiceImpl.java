@@ -17,12 +17,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class StatsServiceImpl implements StatsService {
+
+    private static final Logger log = LoggerFactory.getLogger(StatsServiceImpl.class);
 
     // Rarities listed in full on the dashboard.
     private static final Set<String> HIGH_TIER_RARITIES = Set.of("Épique", "Légendaire");
@@ -46,17 +50,11 @@ public class StatsServiceImpl implements StatsService {
 
     @Override
     @Transactional
-    public void createStatsFor(Player player) {
-        Stats stats = Stats.builder().player(player).build();
-        statsRepository.save(stats);
-    }
-
-    @Override
-    @Transactional
     public void recordOpening(Long playerId, String boxType) {
         Stats stats = statsRepository.findByPlayerId(playerId).orElseGet(() -> {
             Player player =
                     playerRepository.findById(playerId).orElseThrow(() -> new PlayerNotFoundException(playerId));
+            log.info("Creating stats for player {}", playerId);
             return statsRepository.save(Stats.builder().player(player).build());
         });
 
@@ -64,6 +62,12 @@ public class StatsServiceImpl implements StatsService {
         stats.getBoxOpenedByType().merge(boxType, 1, Integer::sum);
 
         statsRepository.save(stats);
+        log.debug(
+                "Player {} stats: {} boxes opened ({} x {})",
+                playerId,
+                stats.getBoxOpened(),
+                stats.getBoxOpenedByType().get(boxType),
+                boxType);
     }
 
     @Override
@@ -78,11 +82,6 @@ public class StatsServiceImpl implements StatsService {
         Map<String, Integer> boxOpenedByType = stats != null ? stats.getBoxOpenedByType() : new HashMap<>();
 
         List<InventoryItem> inventory = inventoryItemRepository.findByPlayerId(playerId);
-
-        RarestCardResponse rarestCard = inventoryItemRepository
-                .findFirstByPlayerIdAndQuantityGreaterThanOrderByItemRarityDropRateAsc(playerId, 0)
-                .map(this::toRarestCardResponse)
-                .orElse(null);
 
         // Rarest first (lowest drop rate), then alphabetical.
         List<RarestCardResponse> rareCards = inventory.stream()
@@ -110,8 +109,9 @@ public class StatsServiceImpl implements StatsService {
                         : pull.getItem().getSellPrice())
                 .sum();
 
+        log.debug("Stats computed for player {}: {} boxes opened, {} cards sold", playerId, boxOpened, cardsSold);
         return new StatsResponse(
-                playerId, boxOpened, boxOpenedByType, rarestCard, rareCards, cardsByRarity, cardsSold, creditsEarned);
+                playerId, boxOpened, boxOpenedByType, rareCards, cardsByRarity, cardsSold, creditsEarned);
     }
 
     private RarestCardResponse toRarestCardResponse(InventoryItem inventoryItem) {
